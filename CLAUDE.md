@@ -25,9 +25,25 @@ python3 tests/check-frontmatter.py
 
 ## 發版
 
-1. 改 `.claude-plugin/plugin.json` 的 `version`（只有這一檔帶版本號）
-2. commit `chore: bump plugin version to X.Y.Z`
-3. `git tag -a vX.Y.Z -m "..."`，push commit 與 tag
+本 repo 是 GitHub fork（上游 `chenjackle45/html-visualizer`，remote 名 `upstream`），版本分兩種，tag 不可混用：
+
+**上游版本（`vX.Y.Z`）**——不自己打，從上游抓：
+
+```
+git fetch upstream --tags
+git merge --ff-only upstream/main
+git push origin main vX.Y.Z
+```
+
+自己 `git tag -a` 建的同名 tag 跟上游的 tag object 不同，之後 fetch 上游會撞名被拒，所以上游版號一律直接用上游的 tag。
+
+**我們自己的版本（`vX.Y.Z-mrl.N`）**——在上游 `X.Y.Z` 之上加我們的改動時：
+
+1. 改 `.claude-plugin/plugin.json` 的 `version` 為 `X.Y.Z-mrl.N`（只有這一檔帶版本號；`X.Y.Z` 是目前基底的上游版本，`N` 從 1 起跳，換上游基底就歸 1）
+2. commit `chore: bump plugin version to X.Y.Z-mrl.N`
+3. `git tag -a vX.Y.Z-mrl.N -m "..."`，push commit 與 tag
+
+合上游新版時 `plugin.json` 的 `version` 會撞，改成新的上游版號（或其上的 `-mrl.1`）。
 
 Claude Code plugin 使用者靠 tag 拿更新；claude.ai / Cowork 使用者要重新 clone、依 README「claude.ai / Cowork」段打包上傳。
 
