@@ -15,7 +15,7 @@
 - **Hover 動效**：`transform: translateY(-3px)` + 浮起陰影 + 邊框變 `--slate`
 - **Section intro 縮排 50px**：對齊 section index 視覺軸（手機要 reset）
 - **Link card 含 thumbnail + arrow**：thumbnail 132px 高、SVG 幾何圖示、hover 變 oat 底
-- **Footer 用 serif italic K-mark**：editorial 收尾儀式
+- **頁尾不放裝飾收尾**：標題與日期頁首已有；拍板頁捲到底時它還會疊在底部列下方，多一層沒用的東西
 
 何時不用 Anthropic 風 → 看下方 § 例外。
 

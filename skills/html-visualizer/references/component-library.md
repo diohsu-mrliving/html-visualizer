@@ -18,7 +18,6 @@
 - [Link card with thumbnail](#link-card-with-thumbnail)
 - [SVG thumbnail 系統](#svg-thumbnail-系統)
 - [Hero figure（雙 pane 對比裝飾）](#hero-figure雙-pane-對比裝飾)
-- [Footer K-mark](#footer-k-mark)
 
 ### 容器類
 - [基礎卡 `.card`](#基礎卡-card)
@@ -450,50 +449,6 @@ a.card:hover .thumb svg .oa { fill: var(--paper); }
 ```
 
 → 旋轉角度（-2.5deg / 1.5deg）是手繪感的關鍵、不要改成正向。
-
-## Footer K-mark
-
-**何時用**：頁面底部、editorial 感的收尾。serif italic 短句 + clay 連結。
-
-```css
-footer.foot {
-  margin-top: 100px;
-  border-top: 1.5px solid var(--g300);
-  padding-top: 36px;
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 20px;
-  flex-wrap: wrap;
-  font-size: 13px;
-  color: var(--g500);
-}
-footer.foot .k {
-  font-family: var(--serif);
-  font-style: italic;
-  color: var(--g700);
-  font-size: 15px;
-}
-footer.foot a {
-  color: var(--clay);
-  text-decoration-color: var(--oat);
-  text-underline-offset: 3px;
-}
-```
-
-```html
-<footer class="foot">
-  <div>
-    <span class="k">— Self-contained HTML</span><br>
-    <span style="font-family: var(--mono); color: var(--g500);">Generated 2026-05-09</span>
-  </div>
-  <div>
-    <a href="#top">回頂部</a>
-  </div>
-</footer>
-```
-
----
 
 # 🛠 通用元件（次選）
 

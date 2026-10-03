@@ -902,27 +902,6 @@
         background: var(--oat);
       }
 
-      /* footer K-mark */
-      footer.k-mark {
-        margin-top: 32px;
-        padding: 36px 0;
-        text-align: center;
-        border-top: 1.5px solid var(--border);
-      }
-      footer.k-mark .glyph {
-        font-family: var(--serif);
-        font-style: italic;
-        font-size: 28px;
-        color: var(--clay);
-      }
-      footer.k-mark .meta {
-        font-family: var(--mono);
-        font-size: 11px;
-        color: var(--g500);
-        margin-top: 12px;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-      }
 
       /* 就地拍板 — 決策與它的說明同一張卡 */
       .inline-decide {
@@ -3558,25 +3537,18 @@
       <div class="max-w-[var(--wrap-max,1760px)] w-[94vw] mx-auto px-4 sm:px-8 py-5">
         <div class="flex items-center justify-between gap-6 flex-wrap">
           <div>
-            <div class="eyebrow" style="color: var(--g700)">產出決策摘要</div>
-            <div style="font-size: 14px; margin-top: 6px">
-              完成所有選擇 → 點按鈕複製 → 交回工程師
-            </div>
+            <div class="eyebrow" style="color: var(--g700)" data-en="Decision summary">產出決策摘要</div>
+            <div style="font-size: 14px; margin-top: 6px" data-en="Make your picks → copy → hand it back to the engineer">完成所有選擇 → 點按鈕複製 → 交回工程師</div>
           </div>
           <div class="flex items-center gap-3">
-            <button id="preview-btn" class="btn-secondary">預覽摘要</button>
-            <button id="copy-btn" class="btn-primary">📋 複製決策摘要</button>
+            <button id="preview-btn" class="btn-secondary" data-en="Preview summary">預覽摘要</button>
+            <button id="copy-btn" class="btn-primary">📋 <span data-en="Copy decision summary">複製決策摘要</span></button>
           </div>
         </div>
         <div id="preview-area" class="hidden mt-4">
           <pre id="preview-content" class="preview"></pre>
         </div>
       </div>
-    </footer>
-
-    <footer class="k-mark">
-      <div class="glyph">∾</div>
-      <div class="meta">2026-09-08 · MARATHON 收尾追認 · Brewly 客服對話自動歸檔</div>
     </footer>
 
     <!-- ═══════════════════════════════════════════════════════ -->
@@ -3845,9 +3817,11 @@
       copyBtn.addEventListener("click", async () => {
         const text = buildSummary();
         const orig = copyBtn.innerHTML;
+        // 風格面板切成英文時 <html data-vt-lang="en">；底部列的固定文字由面板替換，這裡只管執行期文字
+        const en = document.documentElement.getAttribute("data-vt-lang") === "en";
         const ok = await window.vtCopyText(text);
         if (ok) {
-          copyBtn.innerHTML = "✅ 已複製！";
+          copyBtn.innerHTML = en ? "✅ Copied!" : "✅ 已複製！";
         } else {
           // 複製不到就不假報成功：展開預覽區、全選摘要，使用者按 Cmd+C 即可
           window.vtSelectForManualCopy(
@@ -3855,7 +3829,7 @@
             document.getElementById("preview-content"),
             document.getElementById("preview-area"),
           );
-          copyBtn.innerHTML = "已選取 → 請按 Cmd+C 複製";
+          copyBtn.innerHTML = en ? "Selected → press Cmd+C to copy" : "已選取 → 請按 Cmd+C 複製";
         }
         setTimeout(
           () => {

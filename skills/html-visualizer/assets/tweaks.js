@@ -168,6 +168,15 @@
     paint.push(fn);
     fn();
   }
+  // 頁面自己的介面文字（範本底部列的按鈕等）也跟著換：元素寫 data-en="英文"，原本的中文第一次換掉前先存進 data-zh。
+  // <html data-vt-lang> 給頁面腳本讀，組執行期文字（例如「已複製」）時用
+  painted(function () {
+    root.setAttribute("data-vt-lang", lang);
+    document.querySelectorAll("[data-en]").forEach(function (e) {
+      if (!e.hasAttribute("data-zh")) e.setAttribute("data-zh", e.textContent);
+      e.textContent = e.getAttribute(lang === "en" ? "data-en" : "data-zh");
+    });
+  });
 
   var launch = el("button", "vt-tw-launch vt-tw-root");
   launch.type = "button";
