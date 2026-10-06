@@ -31,9 +31,11 @@ python3 tests/check-frontmatter.py
 
 ```
 git fetch upstream --tags
-git merge --ff-only upstream/main
+git merge --no-ff upstream/main
 git push origin main vX.Y.Z
 ```
+
+本 fork 已有自己的 commit，不再假設能 fast-forward。合併上游時保留 fork 修改；若衝突，逐段處理，不整份選用上游。合併後必查 `README.md` 與 `README.en.md`：保留「專案來源與維護 / Project origin and maintenance」、Jackle Chen 原作者署名、MIT/第三方致謝，以及 `diohsu-mrliving/html-visualizer` 的安裝網址。不要以複製上游檔案或 `reset --hard upstream/main` 同步；README 維護段落不屬於可隨上游覆蓋的內容。
 
 自己 `git tag -a` 建的同名 tag 跟上游的 tag object 不同，之後 fetch 上游會撞名被拒，所以上游版號一律直接用上游的 tag。
 

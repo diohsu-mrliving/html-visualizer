@@ -92,10 +92,10 @@ https://github.com/diohsu-mrliving/html-visualizer
 
 ```
 /plugin marketplace add diohsu-mrliving/html-visualizer
-/plugin install html-visualizer@chenjackle45
+/plugin install html-visualizer@diohsu-mrliving
 ```
 
-用 `/plugin list` 確認裝好了。更新用 `/plugin update html-visualizer@chenjackle45`，移除用 `/plugin uninstall html-visualizer@chenjackle45`。
+用 `/plugin list` 確認裝好了。更新用 `/plugin update html-visualizer@diohsu-mrliving`，移除用 `/plugin uninstall html-visualizer@diohsu-mrliving`。
 
 **Claude App / claude.ai / Cowork：以一個 plugin 安裝三個技能。** 在 **Customize → Plugins** 上傳自訂 plugin ZIP。從 repo 根目錄打包：
 
@@ -226,11 +226,17 @@ cd html-visualizer
 
 Skill 的說明文字是繁體中文（作者的工作語言）。**產出頁面跟著你對話的語言走**，用英文聊天就得到英文頁面。頁面上的「風格設定」面板有中英兩種介面，預設跟著頁面語言，面板右上角可以切換，切過會記住；流程圖說明窗目前只有中文介面。
 
-## 作者
+## 專案來源與維護
 
-Jackle Chen — [jackle.pro](https://jackle.pro/) · [@chenjackle45](https://github.com/chenjackle45)
+本 repo 是 [chenjackle45/html-visualizer](https://github.com/chenjackle45/html-visualizer) 的 fork，由 [MR. LIVING / diohsu-mrliving](https://github.com/diohsu-mrliving) 維護這個版本，加入我們的調整與跨平台安裝說明。
 
-有問題或建議請開 [issue](https://github.com/diohsu-mrliving/html-visualizer/issues)。
+原專案作者：Jackle Chen — [jackle.pro](https://jackle.pro/) · [@chenjackle45](https://github.com/chenjackle45)。原作者署名、MIT 授權與第三方致謝保留。
+
+本 fork 的問題或建議請開 [issue](https://github.com/diohsu-mrliving/html-visualizer/issues)；上游專案的問題請至 [上游 issue](https://github.com/chenjackle45/html-visualizer/issues)。
+
+### 同步上游更新
+
+以 Git 合併上游更新，保留本 fork 的 commit。README 若同一段被兩邊修改，可能需要處理衝突；合併後檢查中英文 README 的 fork 說明、上游署名與本 fork 安裝網址。不要直接用上游 README 覆蓋，也不要把本 fork 分支重設成上游；這些做法會丟掉我們的修改。維護步驟見 `CLAUDE.md`。
 
 ## 致謝
 

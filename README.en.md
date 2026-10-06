@@ -94,10 +94,10 @@ Works with Claude Code, Codex, Cursor, Cline, GitHub Copilot, OpenCode and other
 
 ```
 /plugin marketplace add diohsu-mrliving/html-visualizer
-/plugin install html-visualizer@chenjackle45
+/plugin install html-visualizer@diohsu-mrliving
 ```
 
-Check with `/plugin list`. Update with `/plugin update html-visualizer@chenjackle45`, remove with `/plugin uninstall html-visualizer@chenjackle45`.
+Check with `/plugin list`. Update with `/plugin update html-visualizer@diohsu-mrliving`, remove with `/plugin uninstall html-visualizer@diohsu-mrliving`.
 
 **Claude App / claude.ai / Cowork: install all three skills as one plugin.** Upload a custom plugin ZIP under **Customize → Plugins**. Package it from the repository root:
 
@@ -228,11 +228,17 @@ After installing, `skills/html-visualizer/references/examples/` has working exam
 
 The skill instructions are written in Traditional Chinese (the author's working language). **Generated pages follow the language of your conversation** — chat in English and you get English pages. The style-settings panel has Chinese and English labels and follows the page's language (switch it at the panel's top right; the choice is remembered). The diagram panel is Chinese only.
 
-## Author
+## Project origin and maintenance
 
-Jackle Chen — [jackle.pro](https://jackle.pro/) · [@chenjackle45](https://github.com/chenjackle45)
+This repository is a fork of [chenjackle45/html-visualizer](https://github.com/chenjackle45/html-visualizer), maintained by [MR. LIVING / diohsu-mrliving](https://github.com/diohsu-mrliving) with our adaptations and cross-platform installation documentation.
 
-Questions and suggestions: [open an issue](https://github.com/diohsu-mrliving/html-visualizer/issues).
+Original project author: Jackle Chen — [jackle.pro](https://jackle.pro/) · [@chenjackle45](https://github.com/chenjackle45). Original attribution, the MIT license, and third-party credits are retained.
+
+For this fork, [open an issue here](https://github.com/diohsu-mrliving/html-visualizer/issues). For the upstream project, use the [upstream issue tracker](https://github.com/chenjackle45/html-visualizer/issues).
+
+### Syncing upstream updates
+
+Merge upstream changes with Git while retaining this fork's commits. Changes to the same README section may need conflict resolution. After merging, check both READMEs for fork attribution, upstream credits, and this fork's installation URLs. Do not replace the README with the upstream copy or reset this fork's branch to upstream: those operations discard our changes. See `CLAUDE.md` for maintenance steps.
 
 ## Credits
 

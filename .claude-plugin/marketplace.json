@@ -1,10 +1,10 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-  "name": "chenjackle45",
-  "description": "Jackle Chen's Claude Code plugins",
+  "name": "diohsu-mrliving",
+  "description": "MR. LIVING maintained fork of HTML Visualizer",
   "owner": {
-    "name": "Jackle Chen",
-    "url": "https://jackle.pro/"
+    "name": "MR. LIVING",
+    "url": "https://github.com/diohsu-mrliving"
   },
   "plugins": [
     {
@@ -16,7 +16,7 @@
       },
       "source": "./",
       "category": "productivity",
-      "homepage": "https://github.com/chenjackle45/html-visualizer"
+      "homepage": "https://github.com/diohsu-mrliving/html-visualizer"
     }
   ]
 }
