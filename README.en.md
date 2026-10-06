@@ -75,10 +75,12 @@ Before handing you a page it opens it in a real browser at phone, tablet and des
 
 ## Install
 
+**Prefer plugin installation**: one install includes all three skills. Installation entry points and supported formats vary by platform; use the standalone installer when needed.
+
 **The easy way**: paste this URL to your AI and tell it "install this for me".
 
 ```
-https://github.com/chenjackle45/html-visualizer
+https://github.com/diohsu-mrliving/html-visualizer
 ```
 
 That's it. It reads the instructions and puts everything in the right place. When it's done, tell it to reload, or just restart.
@@ -91,28 +93,40 @@ Works with Claude Code, Codex, Cursor, Cline, GitHub Copilot, OpenCode and other
 **Claude Code** has a built-in package manager:
 
 ```
-/plugin marketplace add chenjackle45/html-visualizer
+/plugin marketplace add diohsu-mrliving/html-visualizer
 /plugin install html-visualizer@chenjackle45
 ```
 
 Check with `/plugin list`. Update with `/plugin update html-visualizer@chenjackle45`, remove with `/plugin uninstall html-visualizer@chenjackle45`.
 
-**claude.ai (web) / Claude Cowork** doesn't take plugins — upload each skill as a zip (Settings → Capabilities → Skills). The skill folder itself must be the zip root, one zip per skill:
+**Claude App / claude.ai / Cowork: install all three skills as one plugin.** Upload a custom plugin ZIP under **Customize → Plugins**. Package it from the repository root:
 
+```bash
+git clone https://github.com/diohsu-mrliving/html-visualizer.git
+cd html-visualizer
+zip -r ../html-visualizer-claude-plugin.zip .claude-plugin skills LICENSE
 ```
-git clone https://github.com/chenjackle45/html-visualizer.git
-cd html-visualizer/skills
+
+The plugin contains `html-visualizer`, `chart`, and `diagram-design`; separate uploads are unnecessary. Account-installed plugins sync to Claude Code signed into the same account (v2.1.273 or newer). Local CLI installs do not sync back to the account. Avoid enabling both a plugin and standalone copies of the same skills. See the [official Claude installation guide](https://support.claude.com/en/articles/13837440-use-plugins-in-claude).
+
+**Codex CLI supports plugins, but this repo does not yet provide a Codex marketplace configuration.** Supported versions use `codex plugin add <plugin>@<marketplace>`; this is not a ready-to-run installation command for this repository. Use the installer below for now: it installs standalone skills, not a plugin.
+
+**ChatGPT requires a separately packaged compatible private plugin.** This repository's `.claude-plugin/plugin.json` is not a ChatGPT package. Add a compatible manifest, retain the complete `skills/` and supporting files, then use the private-plugin upload flow. Local CLI installation does not sync to ChatGPT.
+
+**Standalone skill upload (alternative)**: upload three ZIPs under **Customize → Skills**. Run from `skills/`:
+
+```bash
 zip -r html-visualizer.zip html-visualizer
 zip -r chart.zip chart
 zip -r diagram-design.zip diagram-design
 ```
 
-Upload the three zips separately. The web upload has two limits the docs don't spell out: `description` max 200 characters (the Agent Skills spec says 1024) and max 200 files per zip. All three here stay under both. If you edit a description, run `python3 tests/check-frontmatter.py` before uploading.
+These limits apply to standalone skill uploads, not the complete plugin: at most 200 description characters and 200 entries per skill ZIP. Run `python3 tests/check-frontmatter.py` after changing skills.
 
 **Everything else** — clone it and run the installer:
 
 ```
-git clone https://github.com/chenjackle45/html-visualizer.git
+git clone https://github.com/diohsu-mrliving/html-visualizer.git
 cd html-visualizer
 ./install.sh --detect
 ```
@@ -218,7 +232,7 @@ The skill instructions are written in Traditional Chinese (the author's working 
 
 Jackle Chen — [jackle.pro](https://jackle.pro/) · [@chenjackle45](https://github.com/chenjackle45)
 
-Questions and suggestions: [open an issue](https://github.com/chenjackle45/html-visualizer/issues).
+Questions and suggestions: [open an issue](https://github.com/diohsu-mrliving/html-visualizer/issues).
 
 ## Credits
 

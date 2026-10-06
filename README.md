@@ -73,10 +73,12 @@ AI 需要你拍板的事，每一題就放在它的說明旁邊，選項和補�
 
 ## 安裝
 
+**優先用 plugin 安裝**：一個安裝單位包含三個技能；各平台安裝入口與支援格式不同。只有需要單獨 skill 的工具，才用下方 installer。
+
 **最簡單的方法**：把下面這行網址貼給你的 AI，跟它說「幫我安裝這個」。
 
 ```
-https://github.com/chenjackle45/html-visualizer
+https://github.com/diohsu-mrliving/html-visualizer
 ```
 
 就這樣。它會自己看說明、把東西放到正確的位置。裝完跟它說一聲「重新載入」，或把視窗關掉重開。
@@ -89,28 +91,40 @@ https://github.com/chenjackle45/html-visualizer
 **Claude Code** 有內建的套件管理，直接輸入：
 
 ```
-/plugin marketplace add chenjackle45/html-visualizer
+/plugin marketplace add diohsu-mrliving/html-visualizer
 /plugin install html-visualizer@chenjackle45
 ```
 
 用 `/plugin list` 確認裝好了。更新用 `/plugin update html-visualizer@chenjackle45`，移除用 `/plugin uninstall html-visualizer@chenjackle45`。
 
-**claude.ai 網頁版 / Claude Cowork** 不吃 plugin，要把 skill 打包成 zip 上傳（Settings → Capabilities → Skills）。zip 的根目錄必須是 skill 資料夾本身，一個 skill 一個 zip：
+**Claude App / claude.ai / Cowork：以一個 plugin 安裝三個技能。** 在 **Customize → Plugins** 上傳自訂 plugin ZIP。從 repo 根目錄打包：
 
+```bash
+git clone https://github.com/diohsu-mrliving/html-visualizer.git
+cd html-visualizer
+zip -r ../html-visualizer-claude-plugin.zip .claude-plugin skills LICENSE
 ```
-git clone https://github.com/chenjackle45/html-visualizer.git
-cd html-visualizer/skills
+
+plugin 內包含 `html-visualizer`、`chart`、`diagram-design`，不必分別上傳。帳號安裝會同步到同帳號的 Claude Code（需 v2.1.273 以上）；本機 CLI 安裝不會反向同步到帳號。請避免同時啟用 plugin 與另裝的同名 skill。[Claude 官方安裝說明](https://support.claude.com/en/articles/13837440-use-plugins-in-claude)。
+
+**Codex CLI：支援 plugin，但本 repo 尚未提供 Codex marketplace 設定。** 支援的版本可用 `codex plugin add <plugin>@<marketplace>`，這不是本 repo 可直接執行的安裝指令。現在可用下方 installer 安裝三個 skill；它是 skill 安裝，不是 plugin 安裝。
+
+**ChatGPT：需另提供 ChatGPT 相容的私人 plugin。** 本 repo 的 `.claude-plugin/plugin.json` 不能直接當成 ChatGPT 安裝包；需加入相容 manifest、保留完整 `skills/` 與支援檔案，再透過私人 plugin 上傳流程安裝。CLI 本機安裝不會自動同步到 ChatGPT。
+
+**單獨上傳 skill（替代方式）**：在 **Customize → Skills** 分別上傳三個 ZIP。從 `skills/` 目錄執行：
+
+```bash
 zip -r html-visualizer.zip html-visualizer
 zip -r chart.zip chart
 zip -r diagram-design.zip diagram-design
 ```
 
-三個 zip 分別上傳。網頁版有兩個文件沒寫全的限制：`description` 最多 200 字元（Agent Skills 規格是 1024）、一個 zip 最多 200 個檔。本 repo 三份都已控制在內；自己改過 description 的話，上傳前跑 `python3 tests/check-frontmatter.py` 確認。
+以下限制只針對單獨 skill 上傳，不要套用成整份 plugin 的限制：`description` 最多 200 字元、一個 skill ZIP 最多 200 個項目。改動 skill 後跑 `python3 tests/check-frontmatter.py` 檢查。
 
 **其他工具**下載回來跑安裝腳本：
 
 ```
-git clone https://github.com/chenjackle45/html-visualizer.git
+git clone https://github.com/diohsu-mrliving/html-visualizer.git
 cd html-visualizer
 ./install.sh --detect
 ```
@@ -216,7 +230,7 @@ Skill 的說明文字是繁體中文（作者的工作語言）。**產出頁面
 
 Jackle Chen — [jackle.pro](https://jackle.pro/) · [@chenjackle45](https://github.com/chenjackle45)
 
-有問題或建議請開 [issue](https://github.com/chenjackle45/html-visualizer/issues)。
+有問題或建議請開 [issue](https://github.com/diohsu-mrliving/html-visualizer/issues)。
 
 ## 致謝
 
