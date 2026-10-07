@@ -47,6 +47,11 @@ const browser = await pw.chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 await page.goto(pathToFileURL(path.resolve(file)).href);
 await page.waitForTimeout(600);
+// 簡報一次只顯示一張，藏著的 slide 裡 getBBox 量到 0 → 先把每張都攤開再量
+await page.evaluate(() => {
+  if (document.documentElement.dataset.layout === "slides")
+    document.querySelectorAll(".slide").forEach((s) => (s.style.display = "flex"));
+});
 const issues = await page.evaluate(() => {
   const out = [];
   const T = 1;

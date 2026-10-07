@@ -27,6 +27,8 @@ HTML（data-scene + #video-scenes）
 | 旁白 | `<script type="application/json" id="video-scenes">{"scenes":[{"scene":1,"narration":"…"}]}</script>`；沒有這段時改收各幕元素的 `data-narration` |
 | 場景引擎 | `window.__goToScene(n)`：只切 class，動畫交給 CSS。同一個 n 永遠同一個畫面 |
 
+**簡報也能出片**（`assets/slides-template.html`，見 `slides.md` § 影片）：一張 slide＝一幕，`__goToScene(n)` 切到第 n 張；旁白取 `#video-scenes` → 各張 `data-narration` → 講者備註 `.notes`。不用寫 `data-scene`。
+
 平常開頁面時**全部顯示**（靜態幀資訊完整，跟 `diagram-design` 的 `animation.md` 同一原則）。網址加 `?scene=1` 進場景模式，用 ← → 鍵手動預覽每一幕。
 
 可用的進場效果（CSS 已寫好）：
@@ -44,7 +46,7 @@ HTML（data-scene + #video-scenes）
 |---|---|
 | 一幕一個想法 | 這幕只加一樣新東西（一個節點、一條線、一條重點） |
 | 逐步組起來 | 第 1 幕放最少的東西；最後一幕＝完整的一頁版 |
-| 幕數 | ≤ 8 幕；多了拆成兩支片 |
+| 幕數 | 一頁版 ≤ 8 幕，多了拆成兩支片；簡報一張一幕，不受 8 幕限制（整支超過 3 分鐘再拆） |
 | 每幕旁白 | ≤ 15 秒、≤ 3 句、每句 ≤ 20 字（中文約每秒 4.5 字） |
 | 旁白與畫面 | 旁白講的東西，這一幕畫面上一定看得到 |
 | 用字 | 照 `writing-ste.md`：主動語態、一詞一義、數字取代形容詞；不寫括號（念不出來）；數字寫成念法（「四十毫秒」）比較不會念錯 |
@@ -74,6 +76,7 @@ node <skill>/scripts/render-video.mjs page.html --out ~/Documents/claude-html/20
 | `--gap` / `--tail` | 0.6 / 1.2 秒 | 每幕念完多停幾秒／最後一幕再多停幾秒 |
 | `--burn-subs` | 關 | 把字幕燒進畫面（需要有 libass 的 ffmpeg，如 `ffmpeg-full`） |
 | `--fps` | 30 | |
+| `--scenes` | 全部 | 只錄其中幾幕：`2-4`、`1,3,5`（簡報張數多時先錄一段試看） |
 | `--dry-run` | | 只產配音、印每幕秒數，不錄畫面 |
 | `--keep-work` | | 保留工作目錄（截圖、配音）方便除錯 |
 
@@ -100,7 +103,8 @@ ffprobe -v error -show_entries stream=codec_type,codec_name,duration -of compact
 |---|---|
 | `找不到 playwright 套件` | 照上面「執行」第 1 步裝，設 `HTML_VISUALIZER_PLAYWRIGHT_ROOT`；或在已裝 playwright 的專案根目錄執行 |
 | `chromium 與系統 Chrome 都起不來` | 安裝 Google Chrome，或 `npx playwright install chromium` |
-| `頁面沒有 window.__goToScene(n)` | 複製 `assets/onepage-template.html` 的「場景引擎」script 與場景 CSS |
+| `頁面沒有 window.__goToScene(n)` | 一頁版複製 `assets/onepage-template.html` 的「場景引擎」script 與場景 CSS；簡報從 `assets/slides-template.html` 起手（引擎內建） |
+| 簡報的圖表那幕是空的 | 圖表從 CDN 載入（@unovis）。腳本會等 `window.__chartsReady` 最多 15 秒；離線就畫不出來 |
 | 某幕畫面沒變 | 那幕沒有 `data-scene="N"` 的元素（`verify.py` 會報）；或 N 寫錯 |
 | SVG 節點跑到左上角 | `data-scene` 放在有 `transform` 的 `<g>` 上，CSS transform 蓋掉了位置。改包一層沒有 transform 的 `<g>` |
 | 虛線變實線 | 虛線路徑加了 `class="draw"`。拿掉 |

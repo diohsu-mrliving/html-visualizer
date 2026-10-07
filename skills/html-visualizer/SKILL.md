@@ -1,6 +1,6 @@
 ---
 name: html-visualizer
-description: 把長文件、報告、規格、設計決策、架構說明、教學、儀表板、待拍板選項預設做成 HTML 而非 Markdown 給人看。使用者說「整理成文件／做份報告／視覺化／給我看的版本／給老闆看／教我這個／列選項讓我選」、內容超過 50 行、或適合表格／流程圖／對比圖呈現時主動使用；「一頁講完／一眼看懂／投影用」做一頁版，「做成影片／錄旁白講解」加做旁白解說影片。人類看 HTML、AI 看 Markdown。
+description: 把長文件、報告、規格、決策、架構、教學、儀表板、待拍板選項做成 HTML 給人看。使用者說「整理成文件／做份報告／視覺化／給我看的版本／給老闆看／教我這個／列選項讓我選」或內容超過 50 行時主動用；「一頁講完／投影用」做一頁版，「做成簡報／投影片／做 slide／要上台報告」做簡報，「做成影片／錄旁白」加解說影片。人類看 HTML、AI 看 Markdown。
 ---
 
 # HTML Visualizer
@@ -15,16 +15,17 @@ description: 把長文件、報告、規格、設計決策、架構說明、教�
 - **最終給人類看的長文件**用 HTML（視覺化、易閱讀、可互動、可分享）
 - 不是兩份 output、是同一個 source 用對的 representation 給對的 audience
 
-## 輸出階梯：文字 → 一張圖 → 一頁 HTML → 解說影片
+## 輸出階梯：文字 → 一張圖 → 一頁 HTML（或簡報）→ 解說影片
 
-同一個主題可以往上爬四階，**每往上一階，讀者花的力氣更少**。能畫就不寫、能互動就不只放圖、要對外講解就出影片。使用者沒指定時，挑「讀者情境需要的最低一階」，不要每次都爬到頂。
+同一個主題可以往上爬四階（第 3 階有一頁版與簡報兩種形態），**每往上一階，讀者花的力氣更少**。能畫就不寫、能互動就不只放圖、要對外講解就出影片。使用者沒指定時，挑「讀者情境需要的最低一階」，不要每次都爬到頂。
 
 | 階 | 產出 | 何時 | 怎麼做 |
 |---|---|---|---|
 | 1 文字 | chat 裡的短答 | 短 Q&A、一兩句講得完 | 不用此 skill |
 | 2 一張圖 | 單張 SVG 結構圖／圖表 | 「畫一下」「一張圖說明」 | `references/structure-diagrams.md`、`chart` skill |
 | 3 一頁 HTML | **一頁版**：1920×1080 不捲動，標題 → 一張主圖 → ≤ 3 條重點 | 「一頁講完」「給老闆一眼看懂」「投影用」、要出影片的前一步 | `assets/onepage-template.html`，規則見 `references/onepage.md`（長內容仍走下方 Step 0 的一般範本） |
-| 4 解說影片 | mp4：畫面逐幕長出來＋旁白＋字幕（3Blue1Brown 風） | 「做成影片」「錄一段解說」「要傳給沒空看文件的人」 | 一頁版加 `data-scene` 與 `#video-scenes` 旁白 → `node scripts/render-video.mjs page.html`，見 `references/video-explainer.md` |
+| 3′ 簡報 | **簡報**：多張 1920×1080 投影片，一張一個重點；← → 換頁、N 講者備註、O 總覽、列印一張一頁。10 種版型（封面／章節／重點條列／大數字／左右比較／流程圖／時間軸／表格／圖表／結論與下一步） | 「做成簡報」「要上台報告」「做 slide」「投影片」、有人會站在前面一張一張講 | `assets/slides-template.html`，規則與每種版型上限見 `references/slides.md`；視覺來源 `references/examples/slide-report/` |
+| 4 解說影片 | mp4：畫面逐幕長出來＋旁白＋字幕（3Blue1Brown 風） | 「做成影片」「錄一段解說」「要傳給沒空看文件的人」 | 一頁版加 `data-scene` 與 `#video-scenes` 旁白；簡報一張＝一幕、旁白寫 `data-narration` → `node scripts/render-video.mjs page.html`，見 `references/video-explainer.md` |
 
 ⭐ **頁面文字寫法（每一階都適用）**：頁面上給人讀的字照「**八成 ASD-STE100**」寫——短句（≤ 25 字）、一句一事、主動語態、同一個東西全頁只用一個名字、術語第一次出現就用白話定義、數字取代形容詞。旁白更嚴：每句 ≤ 20 字、每幕 ≤ 15 秒。濃縮規則與前後對照見 `references/writing-ste.md`。
 
@@ -85,6 +86,7 @@ description: 把長文件、報告、規格、設計決策、架構說明、教�
 | 只要視覺風格參考、內容結構自理 | `references/examples/anthropic-gallery/` 或 `assets/base-template.html` | 編輯風純展示；⚠️ 這兩份**只給視覺不給骨架**，內容順序請照 explainer 的骨架走 |
 | ⭐ **規格 / 設計 / 方向要跟非技術 stakeholder（老闆 / 業務）對齊確認** | ⭐ **`references/examples/spec-alignment/`** — 必先讀 README + 複製 `index.html` | 由上而下（一句話 → 一張圖核心模型 → 使用者操作情境）+ 每情境配角色視角畫面 mock + 只留「最終規格 / 使用者 UX / 真正要拍板的技術決策」；**藏掉 現況→落差→修正推導、內部編號（R/OD/story id）、非決策細節**（雜訊會稀釋 stakeholder 掌握規格的能力） |
 | 規格 / spec / ADR（**dev audience**、技術細節藍圖）| `assets/base-template.html` | 自己組元件 |
+| ⭐ **做成簡報 / 投影片 / 要上台報告**（多張、有人照順序講）| ⭐ **`assets/slides-template.html`** — 先讀 `references/slides.md` | 每張 1920×1080 不捲動、一張一個重點；每張 `data-layout` 選 10 種版型之一、不超過該版型上限；放不下就拆張不縮字；講者備註寫 `.notes`；`verify.py` 逐張量並出截圖 |
 | ⭐ **一頁講完 / 投影 / 要出解說影片**（無待拍板、一個主題）| ⭐ **`assets/onepage-template.html`** — 先讀 `references/onepage.md` | 1920×1080 不捲動：標題 → 一張主圖 → ≤ 3 條重點；要出影片再加場景與旁白（`references/video-explainer.md`）|
 
 **判斷流程（1 分鐘）**：
@@ -342,6 +344,7 @@ open ~/Documents/claude-html/{YYYY-MM}/{slug}-{date}.html   # Linux 用 xdg-open
 | **`references/structure-diagrams.md`** ⭐ | **要畫有分支 / 交接 / 回頭路 / 分區的結構圖時**（流程圖 / 泳道 / 時序 / 狀態機 / 架構 / 依賴 / 部署 / ER…）— 選型表、六條連線規則、預算、SVG 起手片段、12 型畫法。需要該型完整範例 / 語意 pattern / 逐步動畫時再深讀 `diagram-design` skill 整包（`structure-diagrams.md` §8 列了何時讀它的哪一段）。**有分支且 ≥6 格的圖掛探索層**：§6.7 寫法＋ `assets/diagram-explore.{css,js}` 內嵌，畫完跑 `scripts/svg-text-check.mjs` 驗線端點 |
 | **`chart` skill（另一個 skill、不在本目錄）** ⭐ | **要畫真正的資料圖表時**（趨勢 / 占比 / 分組 / 堆疊 / 目標 vs 實際）—— 本元件庫不含圖表，一律 Read `chart` skill 照它的選圖決策表與五條鐵則做。先看 `references/component-library.md` §資料圖表 判斷「該畫圖還是該用表格」再交棒 |
 | **`references/writing-ste.md`** ⭐ | 寫頁面文字與旁白時 — 八成 ASD-STE100 的八條規則、中文怎麼套、前後對照 |
+| **`references/slides.md`** ⭐ | 簡報：何時用簡報／一頁版／一般頁、10 種版型的用途與上限、放不下怎麼拆、操作鍵、出 PDF、出影片；`verify.py` 遇到 `data-layout="slides"` 自動跑 `scripts/slides-check.mjs`（逐張 1920×1080 量＋截圖）。實例 `references/examples/slide-report/` |
 | `references/onepage.md` | 一頁版（1920×1080 不捲動）何時用、硬規則、放不下怎麼辦；`verify.py` 遇到 `data-layout="onepage"` 自動跑 `scripts/onepage-check.mjs` |
 | `references/video-explainer.md` | 解說影片：場景與旁白寫法（3b1b 規則）、`scripts/render-video.mjs` 參數、疑難排解；範例 `references/examples/video-demo/` |
 | `references/color-and-typography.md` | 配色 token、字體、間距、CSS variables |
@@ -376,6 +379,8 @@ open ~/Documents/claude-html/{YYYY-MM}/{slug}-{date}.html   # Linux 用 xdg-open
 | 「教我 prompt cache 怎麼運作」 | ✓ | ⭐ explainer 骨架 A |
 | 「一頁講完這個給老闆看」/「做一張投影用的」 | ✓ | ⭐ onepage-template |
 | 「把這個做成解說影片」/「錄一段旁白講解」 | ✓ | ⭐ onepage-template ＋ 場景 → `render-video.mjs` |
+| 「做成簡報」/「我要上台報告」/「做 slide」/「做幾張投影片」 | ✓ | ⭐ slides-template（10 種版型）|
+| 「把這份簡報錄成影片」 | ✓ | ⭐ slides-template ＋ 每張 `data-narration` → `render-video.mjs` |
 | 「修一下這個 bug」 | ✗ | — |
 | 「我的 commit message 怎麼寫」 | ✗ | — |
 | 「跑一下測試」 | ✗ | — |

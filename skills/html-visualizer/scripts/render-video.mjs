@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
- * 影片模式 — 把有場景的 HTML（一頁版或逐步頁）錄成帶旁白的 mp4 解說影片。
+ * 影片模式 — 把有場景的 HTML（一頁版、逐步頁或簡報）錄成帶旁白的 mp4 解說影片。
+ * 簡報（<html data-layout="slides">）：一張 slide ＝ 一幕，旁白取 data-narration，沒有就念講者備註。
  *
  * 流程：
  *   1. 讀頁面的場景與旁白（window.__getScenes()：#video-scenes JSON 優先，否則 data-narration）
@@ -13,7 +14,8 @@
  *
  * 用法：
  *   node render-video.mjs <page.html> [--out out.mp4] [--fps 30] [--tts auto|say|elevenlabs]
- *        [--voice Meijia] [--rate 0] [--gap 0.6] [--tail 1.2] [--burn-subs] [--keep-work] [--dry-run]
+ *        [--voice Meijia] [--rate 0] [--gap 0.6] [--tail 1.2] [--scenes 1-3] [--burn-subs] [--keep-work] [--dry-run]
+ *   --scenes：只錄其中幾幕（例：2-4、1,3,5）——簡報張數多時先錄一段試看
  *
  * 規則與疑難排解：references/video-explainer.md
  */
@@ -29,7 +31,7 @@ const argv = process.argv.slice(2);
 const file = argv.find((a) => !a.startsWith("--") && !isValueOf(a));
 function isValueOf(a) {
   const i = argv.indexOf(a);
-  return i > 0 && ["--out", "--fps", "--tts", "--voice", "--rate", "--gap", "--tail", "--width", "--height"].includes(argv[i - 1]);
+  return i > 0 && ["--out", "--fps", "--tts", "--voice", "--rate", "--gap", "--tail", "--width", "--height", "--scenes"].includes(argv[i - 1]);
 }
 const opt = (k, d) => {
   const i = argv.indexOf(k);
@@ -134,6 +136,8 @@ const url = pathToFileURL(SRC).href + "?video=1&scene=0";
 await page.goto(url, { waitUntil: "load", timeout: 30000 });
 await page.evaluate(() => document.fonts && document.fonts.ready);
 await page.waitForTimeout(1200); // Tailwind CDN 與字型套上
+// 簡報的圖表從 CDN 載入（@unovis），畫好前別開錄；沒有圖表的頁旗標一開始就是 true
+await page.waitForFunction(() => window.__chartsReady !== false, null, { timeout: 15000 }).catch(() => {});
 // 不管頁面有沒有內建 video-mode 樣式，都把介面元件藏掉（蓋章注入的風格設定按鈕也在內）
 await page.addStyleTag({
   content:
@@ -142,14 +146,28 @@ await page.addStyleTag({
 if (pageErrors.length) die(`頁面載入就出錯：${pageErrors[0]}`);
 
 const hasEngine = await page.evaluate(() => typeof window.__goToScene === "function");
-if (!hasEngine) die("頁面沒有 window.__goToScene(n)。複製 assets/onepage-template.html 的「場景引擎」那段 script");
-const scenes = await page.evaluate(() => (window.__getScenes ? window.__getScenes() : []));
+if (!hasEngine)
+  die("頁面沒有 window.__goToScene(n)。一頁版複製 assets/onepage-template.html 的「場景引擎」；簡報從 assets/slides-template.html 起手");
+const isDeck = await page.evaluate(() => document.documentElement.getAttribute("data-layout") === "slides");
+let scenes = await page.evaluate(() => (window.__getScenes ? window.__getScenes() : []));
+// --scenes 2-4 / 1,3,5：只錄其中幾幕（幕號照頁面原本的編號，__goToScene 跳得到）
+const pick = opt("--scenes", null);
+if (pick) {
+  const want = new Set();
+  for (const part of pick.split(",")) {
+    const m = part.trim().match(/^(\d+)(?:-(\d+))?$/);
+    if (!m) die(`--scenes 看不懂：「${part}」（寫成 2-4 或 1,3,5）`);
+    for (let k = +m[1]; k <= +(m[2] || m[1]); k++) want.add(k);
+  }
+  scenes = scenes.filter((s, i) => want.has(Number(s.scene) || i + 1));
+  if (!scenes.length) die(`--scenes ${pick} 一幕都沒選到`);
+}
 if (!scenes.length) die("頁面沒有場景：加 <script type=\"application/json\" id=\"video-scenes\">，或在元素上寫 data-scene／data-narration");
 const empty = scenes.filter((s) => !(s.narration || "").trim());
 if (empty.length) die(`第 ${empty.map((s) => s.scene).join("、")} 幕沒有旁白`);
-if (scenes.length > 8) log(`! ${scenes.length} 幕超過建議上限 8 幕（一幕一個想法，考慮拆兩支片）`);
+if (scenes.length > 8 && !isDeck) log(`! ${scenes.length} 幕超過建議上限 8 幕（一幕一個想法，考慮拆兩支片）`);
 const lang = await page.evaluate(() => document.documentElement.lang || "zh-TW");
-log(`▸ ${path.basename(SRC)}：${scenes.length} 幕，語言 ${lang}`);
+log(`▸ ${path.basename(SRC)}：${scenes.length} ${isDeck ? "張簡報（一張一幕）" : "幕"}，語言 ${lang}`);
 
 // ── 2. 配音 ───────────────────────────────────────
 function sayVoices() {
@@ -230,7 +248,7 @@ for (let i = 0; i < scenes.length; i++) {
   // 每幕的聲音補靜音到整幕長度 → 之後直接接起來就和畫面對齊
   ff(["-i", src, "-af", `apad=whole_dur=${dur.toFixed(3)}`, "-ar", "48000", "-ac", "1", wav]);
   plan.push({ scene: Number(s.scene) || n, narration: s.narration, wav, audio, dur });
-  log(`  第 ${n} 幕  旁白 ${audio.toFixed(1)} 秒 → 本幕 ${dur.toFixed(1)} 秒${audio > 15 ? "  ! 超過 15 秒建議上限" : ""}`);
+  log(`  第 ${Number(s.scene) || n} 幕  旁白 ${audio.toFixed(1)} 秒 → 本幕 ${dur.toFixed(1)} 秒${audio > 15 ? "  ! 超過 15 秒建議上限" : ""}`);
 }
 const total = plan.reduce((a, p) => a + p.dur, 0);
 if (flag("--dry-run")) {
@@ -257,6 +275,7 @@ for (let i = 0; i < plan.length; i++) {
       new Promise((res) =>
         requestAnimationFrame(() =>
           requestAnimationFrame(() => {
+            // 簡報的操作列進度條等介面也有 transition，但已被 video-mode 藏起來；只收看得到的動畫
             const as = document.getAnimations();
             let end = 0;
             for (const a of as) {
@@ -286,7 +305,7 @@ for (let i = 0; i < plan.length; i++) {
     } catch (e) {}
   }), animSec * 1000);
   await shot(p.dur - n / FPS);
-  log(`  第 ${i + 1} 幕  動畫 ${n} 格 + 靜止 ${(p.dur - n / FPS).toFixed(1)} 秒`);
+  log(`  第 ${p.scene} 幕  動畫 ${n} 格 + 靜止 ${(p.dur - n / FPS).toFixed(1)} 秒`);
 }
 await browser.close();
 

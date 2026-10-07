@@ -66,6 +66,7 @@ It picks a layout to fit the content instead of stamping the same template every
 Any topic can climb four steps: **text → one diagram → one-page HTML → explainer video**.
 
 - **One-page mode**: say "fit it on one page" or "make a slide for the screen" and you get a page that fills exactly one 1920×1080 screen — a title, one main diagram, at most three takeaways, no scrolling.
+- **Slide deck**: say "make this a deck", "I'm presenting this" or "make slides" and you get a deck you can present straight away: each slide is 1920×1080 with one point, ← → to move, N for speaker notes, O for an overview grid, and printing gives one slide per page (save as PDF). There are 10 slide layouts: cover, section, bullets, big number, compare, flow, timeline, table, chart, and closing with next steps. The self-check renders every slide to confirm it fits and stays within that layout's limits, and saves a screenshot of each. A deck can also be recorded as a video (one slide per scene). See `skills/html-visualizer/references/slides.md`.
 - **Video mode**: say "turn this into an explainer video" and the page builds up scene by scene with narration and subtitles, exported as an mp4. Narration uses the Mac's built-in voices by default (free, offline); set an ElevenLabs key to use that instead. Needs `ffmpeg` and Playwright — see `skills/html-visualizer/references/video-explainer.md`.
 - On-page text follows a controlled-language style (roughly 80% of ASD-STE100): short sentences, one idea per sentence, jargon defined on first use.
 

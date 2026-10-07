@@ -259,6 +259,25 @@ def check_onepage(path):
     return ("bad" if r.returncode == 1 else "ok"), lines
 
 
+def check_slides(path):
+    """簡報每一張在 1920×1080 放不放得下、版型認不認得、有沒有超過該版型上限。回傳 (狀態, 輸出行)。
+
+    存在理由：簡報每張是固定畫布（overflow: hidden），放不下的內容會被默默切掉，
+    畫面上看起來「剛好到底」——只有渲染出來量 scrollHeight 才知道少了什麼。
+    """
+    script = os.path.join(os.path.dirname(os.path.abspath(__file__)), "slides-check.mjs")
+    if not shutil.which("node") or not os.path.exists(script):
+        return "skip", ["找不到 node 或 slides-check.mjs"]
+    try:
+        r = subprocess.run(["node", script, os.path.abspath(path)], capture_output=True, text=True, timeout=300)
+    except subprocess.TimeoutExpired:
+        return "skip", ["執行逾時"]
+    if r.returncode == 2 or "NO_PLAYWRIGHT" in r.stderr or "NO_BROWSER" in r.stderr:
+        return "skip", ["找不到 playwright 或瀏覽器"]
+    lines = [ln for ln in r.stdout.splitlines() if ln.strip()]
+    return ("bad" if r.returncode == 1 else "ok"), lines
+
+
 def check_scale(path):
     """字級拉到 200%，量有多少文字真的變大（≥95%）；同一倍率下有沒有橫向溢出。回傳 (狀態, 輸出行)。
 
@@ -367,6 +386,7 @@ def main(path):
     global WIDTHS
     h = open(path, encoding="utf-8").read()
     decisions = re.findall(r'data-decision[^>]*data-id="([^"]+)"', h)
+    is_slides = bool(re.search(r'<html[^>]*\bdata-layout="slides"', h))
     kind = f"拍板類 · {len(decisions)} 題" if decisions else "純展示類"
     print(f"\n▸ {os.path.basename(path)}  （{kind}）")
     is_template = any(p in os.path.abspath(path) for p in ("/references/examples/", "/assets/", "/templates/"))
@@ -582,11 +602,13 @@ def main(path):
     # ── 純展示 ───────────────────────────────────
     else:
         head("純展示骨架")
-        long_doc = len(h) > 40000
+        long_doc = len(h) > 40000 and not is_slides
         has_reveal = 'class="reveal"' in h
         if long_doc:
             report(OK if has_reveal else BAD, "長文件有漸進揭露",
                    "" if has_reveal else "細節應收進 <details class=\"reveal\">")
+        elif is_slides:
+            report(SKIP, "簡報不用漸進揭露", "一張一個重點；細節放講者備註（.notes）")
         else:
             report(SKIP, "篇幅不長，漸進揭露非必要")
 
@@ -621,6 +643,23 @@ def main(path):
                 report(OK if status == "ok" else BAD,
                        "一個畫面放得下" if status == "ok" else "一頁版放不下或超量",
                        "看下方截圖" if status == "ok" else "砍字、縮圖或拆成兩頁")
+                for ln in lines:
+                    print("     " + ln)
+
+    # ── 簡報 ─────────────────────────────────────
+    # 宣告 data-layout="slides" 的頁：每張 1920×1080 放得下、版型認得、沒超過版型上限（references/slides.md）
+    if is_slides:
+        head("簡報（每張 1920×1080）")
+        if "--no-layout" in sys.argv:
+            report(SKIP, "簡報檢查", "--no-layout 不量")
+        else:
+            status, lines = check_slides(path)
+            if status == "skip":
+                report(UNVERIFIED, "簡報檢查", "；".join(lines) + "——沒跑到不等於通過")
+            else:
+                report(OK if status == "ok" else BAD,
+                       "每張都放得下、版型與上限都對" if status == "ok" else "有張放不下或超過版型上限",
+                       "逐張看下方截圖" if status == "ok" else "拆成兩張或砍字，不要縮字級（references/slides.md）")
                 for ln in lines:
                     print("     " + ln)
 

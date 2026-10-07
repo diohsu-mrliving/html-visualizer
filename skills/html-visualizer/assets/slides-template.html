@@ -1,0 +1,2409 @@
+<!doctype html>
+<html lang="zh-TW" data-layout="slides">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>簡報範本：結帳改版成果（10 種版型示範）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* ════════════════════════════════════════════════════════════ */
+      /* 簡報模式（slides）— 每張 1920×1080，一張一個重點、不捲動。    */
+      /* 規則見 references/slides.md；10 種版型 = section[data-layout] */
+      /* 視覺沿用 references/examples/slide-report（使用者選定的預設）  */
+      /* 頁面在任何視窗都整張等比縮放（像 Keynote 播放），字級照投影寫 */
+      /* ════════════════════════════════════════════════════════════ */
+
+      /* ═══ 主題 token ════════════════════════════════════════════════
+         主題 = 換掉下面這一整段 :root。元件只用語意 token（--bg / --text / --accent …），
+         不寫死色碼。預設是 slide-report 那套（墨綠 ink + teal/mint + peach/lavender、純 sans）。
+         要換 Anthropic 風：把 --bg/--text/--accent… 改成 references/color-and-typography.md 的值，
+         --font-heading 換成 var(--serif)、--heading-weight 換成 500。
+         ═════════════════════════════════════════════════════════════ */
+      :root {
+        /* 底色 */
+        --bg:            #f5f3ec;   /* 頁面底 */
+        --bg-card:       #fffef9;   /* 卡片底 */
+        --bg-soft:       #eeeee5;   /* 弱底（圖框、區塊）*/
+        --bg-soft-2:     #edf1eb;   /* 次層弱底（pill）*/
+        --bg-glass:      #f5f3ecf5; /* 半透明頁底（操作列）*/
+        --bg-overlay:    #ffffffa6; /* 疊在彩色底上的半透明白（小卡）*/
+        --bg-dark:       #173238;   /* 深底區塊（callout、章節頁、封面右欄）*/
+        /* 邊線 */
+        --border:        #d9e0d9;
+        --border-strong: #8caaa4;
+        /* 文字 */
+        --text:          #173238;
+        --text-muted:    #647477;
+        --text-soft:     #647477;
+        /* 主強調 */
+        --accent:        #167765;
+        --accent-soft:   #e2f0e6;
+        --accent-strong: #0f5b4d;
+        /* 語意色（-soft 底 / -border 邊）*/
+        --green:         #167765;
+        --green-soft:    #e2f0e6;
+        --green-border:  #b8d5c2;
+        --red:           #a8322a;
+        --red-soft:      #f8e1dc;
+        --red-border:    #e6b5ab;
+        --yellow:        #97771c;
+        --yellow-soft:   #f7efd6;
+        --yellow-border: #e4d3a0;
+        --orange:        #b84d2c;
+        --orange-soft:   #fce9dd;
+        --orange-border: #eac3af;
+        --blue:          #356794;
+        --blue-soft:     #eaf0f6;
+        --blue-border:   #c5d3de;
+        --purple:        #68568d;
+        --purple-soft:   #eae8f6;
+        --purple-border: #cfc9e1;
+        /* 深底上的字 */
+        --on-dark-text:   #fffef9;
+        --on-dark-muted:  #c5d6d0;
+        --on-dark-accent: #a9e0b4;
+        /* 結構圖連線 */
+        --diagram-line:        #8caaa4;
+        --diagram-line-strong: #71998e;
+        /* 字體：純 sans，標題不用 serif */
+        --sans: -apple-system, BlinkMacSystemFont, "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+        --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+        --font-heading: var(--sans);
+        --font-body:    var(--sans);
+        --font-mono:    var(--mono);
+        --heading-weight:   800;
+        --heading-tracking: -.035em;
+        /* 圖表類別色（chart skill：嵌在本頁時吃頁面 token） */
+        --chart-1: var(--accent);
+        --chart-2: var(--orange);
+        --chart-3: var(--purple);
+        --chart-4: var(--text-muted);
+        /* 投影幕以外的黑邊 */
+        --deck-backdrop: #0f2226;
+      }
+      /* 相容別名：評論工具與設定檔蓋章用的名字，指回上面的語意 token（換主題不用動這段） */
+      :root {
+        --ivory: var(--bg);
+        --paper: var(--bg-card);
+        --slate: var(--text);
+        --clay: var(--accent);
+        --clay-d: var(--accent-strong);
+        --oat: var(--yellow-soft);
+        --g100: var(--bg-soft);
+        --g200: var(--border);
+        --g300: var(--border);
+        --g500: var(--text-soft);
+        --g700: var(--text-muted);
+      }
+
+      /* ── 基礎 ── */
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+      }
+      body {
+        background: var(--deck-backdrop);
+        color: var(--text);
+        font-family: var(--font-body);
+        line-height: 1.55;
+        -webkit-font-smoothing: antialiased;
+        font-synthesis: none;
+      }
+      button {
+        font: inherit;
+        cursor: pointer;
+        touch-action: manipulation;
+      }
+      button:focus-visible {
+        outline: 3px solid var(--orange);
+        outline-offset: 4px;
+      }
+
+      /* ════════════════════════════════════════════════════ */
+      /* 舞台：每張 slide 是 1920×1080 的固定畫布，             */
+      /* 腳本算縮放比例、整張等比縮放置中（四周留黑邊）。          */
+      /* 字級與間距一律用 1920 寬的設計 px 寫（≈ 1440 版 × 1.4）。 */
+      /* ════════════════════════════════════════════════════ */
+      .deck {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: var(--deck-notes-h, 0px);
+        overflow: hidden;
+      }
+      .deck-spacer {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 1px;
+        height: 0;
+        pointer-events: none;
+      }
+      .slide {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 1920px;
+        height: 1080px;
+        transform-origin: 0 0;
+        transform: translate(var(--deck-x, 0px), var(--deck-y, 0px)) scale(var(--deck-scale, 1));
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        padding: 64px 112px 44px;
+        background: var(--bg);
+        color: var(--text);
+        overflow: hidden; /* 放不下就是放不下：slides-check 量 scrollHeight，不靠捲動遮掩 */
+        font-size: 22px;
+        line-height: 1.55;
+      }
+      .slide.active {
+        display: flex;
+      }
+      .slide .notes {
+        display: none !important; /* 講者備註：按 N 在下方面板看，不畫在投影上 */
+      }
+
+      /* ── 每張共用骨架：eyebrow → h2 → lead → 視覺元件 → callout → footer ── */
+      .slide .eyebrow {
+        font-size: 17px;
+        letter-spacing: .17em;
+        font-weight: 800;
+        color: var(--accent);
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        margin: 0 0 14px;
+      }
+      .slide .badge {
+        font-size: 16px;
+        letter-spacing: .02em;
+        border: 1.5px solid currentColor;
+        border-radius: 100px;
+        padding: 2px 13px;
+      }
+      .slide .pending {
+        color: var(--orange);
+      }
+      /* 選擇器比 Tailwind preflight 高一級（理由見 base-template） */
+      .slide h1,
+      .slide h2,
+      .slide h3 {
+        font-family: var(--font-heading);
+      }
+      .slide h1,
+      .slide h2 {
+        font-size: 66px;
+        letter-spacing: var(--heading-tracking);
+        line-height: 1.22;
+        margin: 0 0 16px;
+        font-weight: var(--heading-weight);
+      }
+      .slide h1 em,
+      .slide h2 em {
+        font-style: normal;
+        color: var(--accent);
+      }
+      .slide h3 {
+        margin: 14px 0 10px;
+        font-size: 30px;
+        line-height: 1.35;
+        font-weight: 750;
+      }
+      .slide p {
+        margin: 0;
+      }
+      .slide .lead {
+        color: var(--text-muted);
+        font-size: 24px;
+        max-width: 1330px;
+        margin-bottom: 36px;
+      }
+      .slide .footer {
+        margin-top: 36px;
+        padding-top: 18px;
+        border-top: 1.5px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        gap: 28px;
+        color: var(--text-muted);
+        font-size: 16px;
+      }
+      .slide .footer span:last-child {
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+      }
+      .slide strong {
+        font-weight: 750;
+      }
+      .slide code {
+        font-family: var(--font-mono);
+        font-size: .83em;
+      }
+      .slide .small {
+        font-size: 17px;
+        color: var(--text-muted);
+      }
+
+      /* ── 共用元件（與 slide-report 同一套）：格線 / 卡片 / 圖示 / 小標 / callout / pill ── */
+      .slide .grid {
+        display: grid;
+        gap: 25px;
+      }
+      .slide .g2 {
+        grid-template-columns: 1fr 1fr;
+      }
+      .slide .g3 {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      .slide .g4 {
+        grid-template-columns: repeat(4, 1fr);
+      }
+      .slide .card {
+        background: var(--bg-card);
+        border: 1.5px solid var(--border);
+        border-radius: 25px;
+        padding: 32px;
+        min-width: 0;
+      }
+      .slide .card p {
+        font-size: 21px;
+        color: var(--text-muted);
+      }
+      .slide .card.teal {
+        background: var(--green-soft);
+        border-color: var(--green-border);
+      }
+      .slide .card.orange {
+        background: var(--orange-soft);
+        border-color: var(--orange-border);
+      }
+      .slide .card.purple {
+        background: var(--purple-soft);
+        border-color: var(--purple-border);
+      }
+      .slide .icon {
+        height: 53px;
+        width: 53px;
+        stroke: currentColor;
+        stroke-width: 1.7;
+        fill: none;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        color: var(--accent);
+      }
+      .slide .orange .icon {
+        color: var(--orange);
+      }
+      .slide .purple .icon {
+        color: var(--purple);
+      }
+      .slide .number {
+        font-size: 17px;
+        font-weight: 800;
+        letter-spacing: .14em;
+        color: var(--text-muted);
+      }
+      .slide .callout {
+        padding: 21px 29px;
+        background: var(--bg-dark);
+        border-radius: 17px;
+        color: var(--on-dark-text);
+        margin-top: 28px;
+        font-size: 25px;
+      }
+      .slide .callout strong {
+        color: var(--on-dark-accent);
+      }
+      .slide .result {
+        margin-top: 25px;
+        border-top: 1.5px solid var(--border);
+        padding-top: 21px;
+        font-size: 22px;
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .slide .pillrow {
+        display: flex;
+        gap: 11px;
+        flex-wrap: wrap;
+        margin-top: 21px;
+      }
+      .slide .pill {
+        background: var(--bg-soft-2);
+        border-radius: 100px;
+        padding: 7px 17px;
+        font-size: 18px;
+      }
+      .slide .mini {
+        margin-top: 18px;
+        padding: 17px 20px;
+        border-radius: 14px;
+        background: var(--bg-overlay);
+        font-size: 20px;
+      }
+      .slide .mini b {
+        display: block;
+        margin-bottom: 6px;
+      }
+      .slide .support {
+        display: flex;
+        gap: 14px;
+        margin-top: 22px;
+        flex-wrap: wrap;
+      }
+      .slide .support span {
+        flex: 1;
+        padding: 14px;
+        background: var(--bg-card);
+        border: 1.5px solid var(--border);
+        border-radius: 13px;
+        font-size: 17px;
+        min-width: 220px;
+      }
+      .slide .support b {
+        display: block;
+        font-size: 18px;
+      }
+
+      /* ── SVG 結構圖（放在 .flow-wrap 裡；畫法照 references/structure-diagrams.md）── */
+      .slide .flow-wrap {
+        background: var(--bg-soft);
+        border: 1.5px solid var(--border);
+        border-radius: 31px;
+        padding: 31px 34px 14px;
+      }
+      .slide .diagram {
+        width: 100%;
+        display: block;
+        overflow: visible;
+      }
+      .diagram text {
+        font-family: var(--font-body);
+        fill: var(--text);
+      }
+      .diagram .sub {
+        font-size: 13px;
+        fill: var(--text-muted);
+      }
+      .diagram .label {
+        font-size: 18px;
+        font-weight: 750;
+      }
+      .diagram .actor {
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: .06em;
+      }
+      /* 連線：<g class="edge" data-from data-to> 包 <path class="ln">（.edge 留給身分標記用） */
+      .diagram .ln {
+        fill: none;
+        stroke: var(--diagram-line-strong);
+        stroke-width: 2;
+      }
+      .diagram .ln-hot {
+        fill: none;
+        stroke: var(--orange);
+        stroke-width: 2;
+        stroke-dasharray: 5 4;
+      }
+      .diagram marker path {
+        fill: none;
+        stroke-width: 1.5;
+        stroke: var(--diagram-line-strong);
+      }
+      .diagram marker .arrowhead-hot {
+        stroke: var(--orange);
+      }
+      .diagram rect {
+        stroke: var(--border);
+        stroke-width: 1.2;
+      }
+      .diagram .base {
+        fill: var(--bg-card);
+      }
+      .diagram .human {
+        fill: var(--blue-soft);
+        stroke: var(--blue-border);
+      }
+      .diagram .ai {
+        fill: var(--green-soft);
+        stroke: var(--green-border);
+      }
+      .diagram .hot {
+        fill: var(--orange-soft);
+        stroke: var(--orange-border);
+      }
+      .slide .flow-note {
+        font-size: 20px;
+        text-align: center;
+        padding: 14px 0 10px;
+        color: var(--text-muted);
+      }
+      .slide .flow-note b {
+        color: var(--orange);
+      }
+
+      /* ════ 版型 1：封面 cover ════ */
+      .cv-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+        gap: 72px;
+        align-items: center;
+      }
+      .slide .cv-title {
+        font-size: 96px;
+        line-height: 1.12;
+        letter-spacing: -.045em;
+        margin: 0 0 26px;
+      }
+      .slide .cv-sub {
+        font-size: 30px;
+        color: var(--text-muted);
+        max-width: 1000px;
+      }
+      .slide .cv-meta {
+        margin-top: 44px;
+      }
+      .slide .cv-meta .pill {
+        font-size: 21px;
+        padding: 9px 22px;
+      }
+      .slide .cv-panel {
+        background: var(--bg-dark);
+        color: var(--on-dark-text);
+        border-radius: 34px;
+        padding: 52px 48px;
+      }
+      .cv-panel .icon {
+        width: 66px;
+        height: 66px;
+        color: var(--on-dark-accent);
+      }
+      .slide .cv-panel h3 {
+        font-size: 36px;
+        margin: 24px 0 14px;
+      }
+      .slide .cv-panel p {
+        color: var(--on-dark-muted);
+        font-size: 22px;
+      }
+      .slide .cv-panel .badge {
+        color: var(--on-dark-accent);
+        display: inline-block;
+        margin-top: 26px;
+      }
+
+      /* ════ 版型 2：章節頁 section ════ */
+      .slide[data-layout="section"] {
+        background: var(--bg-dark);
+        color: var(--on-dark-text);
+        padding: 64px 160px;
+      }
+      .slide .sc-num {
+        font-size: 200px;
+        line-height: .9;
+        font-weight: 800;
+        letter-spacing: -.05em;
+        color: var(--on-dark-accent);
+        margin-bottom: 40px;
+      }
+      .slide[data-layout="section"] h2 {
+        font-size: 84px;
+        color: var(--on-dark-text);
+      }
+      .slide[data-layout="section"] .lead {
+        color: var(--on-dark-muted);
+        font-size: 30px;
+        margin: 8px 0 0;
+      }
+      .slide[data-layout="section"] .eyebrow {
+        color: var(--on-dark-accent);
+      }
+
+      /* ════ 版型 3：重點條列 bullets（3–5 條）— 與 slide-report 的檢查列同款 ════ */
+      .slide .bl-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        gap: 17px;
+        counter-reset: bl;
+      }
+      .bl-list > li {
+        counter-increment: bl;
+        display: flex;
+        gap: 26px;
+        align-items: center;
+        background: var(--bg-card);
+        border: 1.5px solid var(--border);
+        padding: 22px 30px;
+        border-radius: 21px;
+      }
+      .bl-list > li::before {
+        content: counter(bl);
+        flex-shrink: 0;
+        width: 58px;
+        height: 58px;
+        border-radius: 50%;
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-size: 27px;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .bl-list > li > .icon {
+        flex-shrink: 0;
+      }
+      .bl-list > li:has(> .icon)::before {
+        display: none;
+      }
+      .bl-list b {
+        display: block;
+        font-size: 28px;
+        line-height: 1.35;
+      }
+      .bl-list span {
+        display: block;
+        color: var(--text-muted);
+        font-size: 20px;
+        margin-top: 3px;
+      }
+
+      /* ════ 版型 4：大數字 big-number ════ */
+      .bn-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+        gap: 64px;
+        align-items: center;
+      }
+      .slide .bn-num {
+        font-size: 260px;
+        line-height: .95;
+        font-weight: 800;
+        letter-spacing: -.06em;
+        color: var(--accent);
+        font-variant-numeric: tabular-nums;
+      }
+      .bn-num .bn-unit {
+        font-size: 120px;
+        letter-spacing: -.02em;
+        margin-left: 8px;
+      }
+      .slide .bn-line {
+        font-size: 44px;
+        line-height: 1.3;
+        margin: 0 0 18px;
+      }
+      .slide .bn-ctx {
+        font-size: 22px;
+        color: var(--text-muted);
+      }
+
+      /* ════ 版型 5：左右比較 compare — 兩張卡、右卡＝建議／改後 ════ */
+      .slide .cp-points {
+        list-style: none;
+        margin: 6px 0 0;
+        padding: 0;
+        display: grid;
+        gap: 12px;
+      }
+      .cp-points li {
+        font-size: 23px;
+        line-height: 1.45;
+        padding-left: 26px;
+        position: relative;
+        color: var(--text);
+      }
+      .cp-points li::before {
+        content: "";
+        position: absolute;
+        left: 2px;
+        top: .6em;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--border-strong);
+      }
+      .teal .cp-points li::before {
+        background: var(--accent);
+      }
+      .orange .cp-points li::before {
+        background: var(--orange);
+      }
+
+      /* ════ 版型 7：時間軸 timeline（3–6 個節點）════ */
+      .slide .tl-track {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: minmax(0, 1fr);
+        gap: 22px;
+        position: relative;
+      }
+      .tl-track::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 15px;
+        height: 3px;
+        background: var(--border-strong);
+      }
+      .tl-item {
+        position: relative;
+        padding-top: 52px;
+        min-width: 0;
+      }
+      .tl-item::before {
+        content: "";
+        position: absolute;
+        left: 26px;
+        top: 3px;
+        width: 27px;
+        height: 27px;
+        border-radius: 50%;
+        background: var(--bg);
+        border: 4px solid var(--border-strong);
+      }
+      .tl-item.is-done::before {
+        background: var(--accent);
+        border-color: var(--accent);
+      }
+      .tl-item.is-now::before {
+        background: var(--orange);
+        border-color: var(--orange);
+        box-shadow: 0 0 0 9px var(--orange-soft);
+      }
+      .tl-item .card {
+        height: 100%;
+        padding: 26px 26px;
+      }
+      .tl-item.is-now .card {
+        background: var(--orange-soft);
+        border-color: var(--orange-border);
+      }
+      .tl-item.is-now .number {
+        color: var(--orange);
+      }
+      .slide .tl-item h3 {
+        font-size: 27px;
+        margin: 10px 0 8px;
+      }
+
+      /* ════ 版型 8：表格 table（≤ 6 列、≤ 5 欄）════ */
+      .slide .tb-wrap {
+        background: var(--bg-card);
+        border: 1.5px solid var(--border);
+        border-radius: 25px;
+        overflow: hidden;
+      }
+      .slide .tb {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+        font-size: 23px;
+        line-height: 1.4;
+      }
+      .tb th {
+        font-size: 17px;
+        font-weight: 800;
+        letter-spacing: .14em;
+        color: var(--text-muted);
+        text-align: left;
+        background: var(--bg-soft);
+        padding: 18px 26px;
+        border-bottom: 1.5px solid var(--border);
+      }
+      .tb td {
+        padding: 20px 26px;
+        border-bottom: 1.5px solid var(--border);
+        vertical-align: top;
+      }
+      .tb tr:last-child td {
+        border-bottom: 0;
+      }
+      .tb .num {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+      .tb tr.is-hot td {
+        background: var(--green-soft);
+        font-weight: 700;
+      }
+      .tb tr.is-hot td:first-child {
+        box-shadow: inset 7px 0 0 var(--accent);
+      }
+      .tb td .small {
+        display: block;
+      }
+
+      /* ════ 版型 9：圖表 chart（@unovis，照 chart skill）════ */
+      .ch-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 470px;
+        gap: 25px;
+        align-items: stretch;
+      }
+      .slide .ch-card {
+        display: flex;
+        flex-direction: column;
+        padding: 28px 32px 22px;
+      }
+      .slide .ch-legend {
+        display: flex;
+        gap: 34px;
+        font-size: 19px;
+        color: var(--text-muted);
+        margin: 0 0 10px;
+      }
+      .ch-legend i {
+        display: inline-block;
+        width: 18px;
+        height: 18px;
+        border-radius: 5px;
+        vertical-align: -2px;
+        margin-right: 9px;
+      }
+      .ch-legend i.ln {
+        width: 30px;
+        height: 0;
+        border-radius: 0;
+        border-top: 3.5px solid;
+        vertical-align: 6px;
+      }
+      .ch-legend i.ln.dash {
+        border-top-style: dashed;
+      }
+      .ch-plot {
+        position: relative;
+        height: 430px;
+        /* @unovis 軸樣式：吃頁面 token；刻度字 ≥ 18px 才投影得到 */
+        --vis-font-family: var(--font-body);
+        --vis-axis-tick-label-color: var(--text-muted);
+        --vis-axis-tick-label-font-size: 18px;
+        --vis-axis-label-font-size: 18px;
+        --vis-axis-grid-color: var(--border);
+        --vis-axis-tick-color: transparent;
+        --vis-axis-domain-color: transparent;
+        --vis-axis-label-color: var(--text-muted);
+      }
+      .ch-plot .ch-fallback {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px dashed var(--border);
+        border-radius: 16px;
+        font-size: 21px;
+        color: var(--text-muted);
+      }
+      .ch-side {
+        display: grid;
+        gap: 25px;
+        align-content: center;
+      }
+
+      /* ════ 版型 10：結論與下一步 closing ════ */
+      .cl-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 25px;
+        align-items: stretch;
+      }
+      .slide .cl-main {
+        background: var(--bg-dark);
+        color: var(--on-dark-text);
+        border-radius: 25px;
+        padding: 36px 40px;
+      }
+      .cl-main .number {
+        color: var(--on-dark-muted);
+      }
+      .slide .cl-main h3 {
+        font-size: 34px;
+        margin: 12px 0 26px;
+      }
+      .slide .cl-main h3 strong {
+        color: var(--on-dark-accent);
+      }
+      .slide .cl-decisions {
+        list-style: none;
+        margin: 10px 0 0;
+        padding: 0;
+        display: grid;
+        gap: 12px;
+      }
+      .cl-decisions li {
+        font-size: 23px;
+        padding-left: 44px;
+        position: relative;
+        color: var(--on-dark-text);
+      }
+      /* 打勾用 CSS 畫，不用 ✓ 字元（設定檔 noEmoji 會擋符號） */
+      .cl-decisions li::before {
+        content: "";
+        position: absolute;
+        left: 8px;
+        top: .2em;
+        width: 11px;
+        height: 21px;
+        border: solid var(--on-dark-accent);
+        border-width: 0 4px 4px 0;
+        transform: rotate(40deg);
+      }
+      .slide .cl-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        gap: 17px;
+      }
+      .slide .cl-list > li {
+        padding: 22px 28px;
+      }
+      .slide .cl-list h3 {
+        font-size: 27px;
+        margin: 6px 0 0;
+      }
+      .cl-list .number {
+        color: var(--orange);
+      }
+
+      /* ════ 進場動畫：一張 slide 出現時，區塊依序淡入上移 ════
+         只用 CSS animation（影片模式靠暫停 CSS 動畫逐格截圖，JS 動畫錄不到） */
+      @keyframes sl-in {
+        from {
+          opacity: 0;
+          transform: translateY(16px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      .slide.active > :not(.notes),
+      .slide.active .anim-list > * {
+        animation: sl-in 520ms cubic-bezier(.2, .8, .2, 1) both;
+      }
+      .slide.active > :nth-child(2) { animation-delay: 70ms; }
+      .slide.active > :nth-child(3) { animation-delay: 140ms; }
+      .slide.active > :nth-child(4) { animation-delay: 210ms; }
+      .slide.active > :nth-child(5) { animation-delay: 280ms; }
+      .slide.active .anim-list > :nth-child(1) { animation-delay: 220ms; }
+      .slide.active .anim-list > :nth-child(2) { animation-delay: 320ms; }
+      .slide.active .anim-list > :nth-child(3) { animation-delay: 420ms; }
+      .slide.active .anim-list > :nth-child(4) { animation-delay: 520ms; }
+      .slide.active .anim-list > :nth-child(5) { animation-delay: 620ms; }
+      .slide.active .anim-list > :nth-child(6) { animation-delay: 720ms; }
+      .deck.is-grid .slide *,
+      .deck.is-grid .slide {
+        animation: none !important;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .slide * {
+          animation: none !important;
+        }
+      }
+
+      /* ════ 總覽（O 鍵）：所有 slide 排成縮圖格；手機直拿自動變一欄往下滑 ════ */
+      .deck.is-grid {
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+      .deck.is-grid .slide {
+        display: flex;
+        transform: translate(var(--gx, 0px), var(--gy, 0px)) scale(var(--deck-gs, .2));
+        cursor: pointer;
+      }
+      .deck.is-grid .slide.active {
+        box-shadow: 0 0 0 calc(4px / var(--deck-gs, .2)) var(--orange);
+      }
+
+      /* ════ 操作列（同 slide-report 的導覽按鈕）／進度條／講者備註 ════ */
+      .deck-progress {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 4px;
+        z-index: 40;
+        pointer-events: none;
+      }
+      .deck-progress i {
+        display: block;
+        height: 100%;
+        width: 0;
+        background: var(--accent);
+        transition: width .2s;
+      }
+      .deck-notes-open .deck-progress {
+        bottom: var(--deck-notes-h, 0px);
+      }
+      .deck-chrome {
+        position: fixed;
+        left: 50%;
+        bottom: 14px;
+        transform: translateX(-50%);
+        z-index: 50;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 10px;
+        border-radius: 14px;
+        background: var(--bg-glass);
+        border: 1px solid var(--border);
+        backdrop-filter: blur(14px);
+        color: var(--text);
+        font-size: 13px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
+        transition: opacity .3s;
+        white-space: nowrap;
+      }
+      .deck-chrome .deck-brand {
+        font-size: 12px;
+        letter-spacing: .12em;
+        font-weight: 800;
+        padding: 0 6px;
+      }
+      .deck-chrome button {
+        border: 1px solid var(--border);
+        background: var(--bg-card);
+        color: var(--text);
+        border-radius: 8px;
+        padding: 5px 12px;
+        font-size: 13px;
+      }
+      .deck-chrome button[aria-pressed="true"] {
+        background: var(--bg-dark);
+        color: var(--on-dark-text);
+      }
+      .deck-chrome button:disabled {
+        opacity: .4;
+        cursor: default;
+      }
+      .deck-chrome .deck-count {
+        font-variant-numeric: tabular-nums;
+        min-width: 58px;
+        text-align: center;
+      }
+      .deck-notes {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 26vh;
+        min-height: 150px;
+        z-index: 45;
+        overflow-y: auto;
+        background: var(--bg-card);
+        color: var(--text);
+        padding: 14px 24px 70px;
+        font-size: 17px;
+        line-height: 1.65;
+        border-top: 3px solid var(--accent);
+      }
+      .deck-notes[hidden] {
+        display: none;
+      }
+      .deck-notes .deck-notes-head {
+        font-size: 12px;
+        letter-spacing: .14em;
+        font-weight: 800;
+        color: var(--accent);
+        margin-bottom: 6px;
+      }
+      .deck-badge {
+        position: fixed;
+        left: 0;
+        top: 0;
+        z-index: 41;
+        transition: opacity .3s;
+      }
+      /* 滑鼠停 2.5 秒：操作列與頁面工具淡出，投影畫面乾淨；一動就回來 */
+      html.deck-idle .deck-chrome,
+      html.deck-idle .deck-badge,
+      html.deck-idle .vt-tw-root,
+      html.deck-idle .vt-comment-pill {
+        opacity: 0;
+        pointer-events: none;
+      }
+      html.deck-idle,
+      html.deck-idle body {
+        cursor: none;
+      }
+      @media (max-width: 720px) {
+        .deck-chrome .deck-wide {
+          display: none;
+        }
+      }
+      /* 影片模式（render-video.mjs 帶 ?video）：所有介面都藏起來 */
+      .video-mode .deck-chrome,
+      .video-mode .deck-progress,
+      .video-mode .deck-notes,
+      .video-mode .deck-badge,
+      .video-mode .vt-comment-trigger,
+      .video-mode .vt-comment-pill,
+      .video-mode .vt-comment-popup,
+      .video-mode .vt-comment-list,
+      .video-mode .vt-session-badge,
+      .video-mode .vt-tw-root {
+        display: none !important;
+      }
+
+      /* ════ 列印／存 PDF：一張一頁，頁面尺寸就是 1920×1080 ════ */
+      @media print {
+        @page {
+          size: 1920px 1080px;
+          margin: 0;
+        }
+        html,
+        body {
+          height: auto;
+          background: none;
+        }
+        .deck,
+        .deck.is-grid {
+          position: static;
+          overflow: visible;
+        }
+        .slide,
+        .deck.is-grid .slide {
+          position: relative !important;
+          display: flex !important;
+          transform: none !important;
+          box-shadow: none !important;
+        }
+        /* 分頁放在「下一張之前」：最後一張後面才不會多一頁空白 */
+        .slide ~ .slide {
+          break-before: page;
+          page-break-before: always;
+        }
+        .slide * {
+          animation: none !important;
+        }
+        .deck-chrome,
+        .deck-progress,
+        .deck-notes,
+        .deck-badge,
+        .deck-spacer,
+        .vt-comment-trigger,
+        .vt-comment-pill,
+        .vt-comment-popup,
+        .vt-comment-list,
+        .vt-tw-root {
+          display: none !important;
+        }
+        * {
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+      }
+      .symbols {
+        position: absolute;
+        width: 0;
+        height: 0;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- 圖示：<svg class="icon"><use href="#i-xxx"/></svg>（與 slide-report 同一組） -->
+    <svg class="symbols" aria-hidden="true"><defs>
+      <symbol id="i-chat" viewBox="0 0 32 32"><path d="M6 5h20a3 3 0 0 1 3 3v13a3 3 0 0 1-3 3H13l-7 5v-5a3 3 0 0 1-3-3V8a3 3 0 0 1 3-3Z"/><path d="M9 11h14M9 17h9"/></symbol>
+      <symbol id="i-file" viewBox="0 0 32 32"><path d="M7 3h12l7 7v19H7zM19 3v8h7M12 17h9M12 22h9"/></symbol>
+      <symbol id="i-clock" viewBox="0 0 32 32"><circle cx="16" cy="16" r="12"/><path d="M16 8v9l6 3"/></symbol>
+      <symbol id="i-link" viewBox="0 0 32 32"><path d="m12 20 8-8M10 18l-2 2a5 5 0 0 0 7 7l6-6a5 5 0 0 0 0-7M22 14l2-2a5 5 0 0 0-7-7l-6 6a5 5 0 0 0 0 7"/></symbol>
+      <symbol id="i-check" viewBox="0 0 32 32"><path d="M16 3 28 8v8c0 7-12 13-12 13S4 23 4 16V8zM10 16l4 4 8-9"/></symbol>
+      <symbol id="i-person" viewBox="0 0 32 32"><circle cx="16" cy="9" r="5"/><path d="M6 28v-5a10 10 0 0 1 20 0v5"/></symbol>
+      <symbol id="i-box" viewBox="0 0 32 32"><path d="m3 9 13-6 13 6v16l-13 5L3 25zM3 9l13 6 13-6M16 15v15M9 6l13 6"/></symbol>
+      <symbol id="i-split" viewBox="0 0 32 32"><path d="M16 28V16L7 7M16 16l9-9M3 7h8M7 3v8M21 7h8M25 3v8"/></symbol>
+      <symbol id="i-refresh" viewBox="0 0 32 32"><path d="M27 12A12 12 0 0 0 6 7L3 11M3 4v7h7M5 20a12 12 0 0 0 21 5l3-4M29 28v-7h-7"/></symbol>
+    </defs></svg>
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- 投影片：一個 section.slide[data-layout="版型"] 就是一張。      -->
+    <!-- 版型（10 種）：cover / section / bullets / big-number /        -->
+    <!--   compare / flow / timeline / table / chart / closing          -->
+    <!-- 每張上限見 references/slides.md；放不下就拆張，不縮字。         -->
+    <!-- data-narration：影片旁白（沒寫就念 .notes 講者備註）            -->
+    <!-- .footer 右邊的 .sl-num 由腳本自動填頁碼                         -->
+    <!-- data-tw-lock：投影畫布不吃「風格設定」字級倍率（整張等比縮放）   -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <main class="deck" data-tw-lock aria-roledescription="簡報">
+      <div class="deck-spacer" aria-hidden="true"></div>
+
+      <!-- ── 1 封面 cover：主標 ≤ 20 字、副標一句、日期／報告人 pill、右欄寫「今天要決定什麼」── -->
+      <section class="slide" data-layout="cover" id="s1" aria-label="封面"
+        data-narration="這份報告講結帳改版的成果。五步結帳改成三步，放棄率下降百分之三十七。今天要決定兩件事。">
+        <div class="eyebrow">Q3 REVIEW / 產品組 <span class="badge">示範內容</span></div>
+        <div class="cv-grid">
+          <div>
+            <h1 class="cv-title">結帳改版：<em>五步變三步</em></h1>
+            <p class="cv-sub">改版八週，結帳放棄率下降 37%。這份報告說明改了什麼、效果多大、下一步做什麼。</p>
+            <div class="pillrow cv-meta"><span class="pill">2026-10-08</span><span class="pill">報告人：產品組</span><span class="pill">約 15 分鐘</span></div>
+          </div>
+          <div class="cv-panel">
+            <svg class="icon"><use href="#i-check" /></svg>
+            <h3>今天要決定兩件事</h3>
+            <p>何時移除舊流程；下一個要補的付款方式。</p>
+            <span class="badge">待拍板 · 見最後一張</span>
+          </div>
+        </div>
+        <aside class="notes">開場先講結論：改版有效，今天要拍板下一步。範本裡的數字都是虛構的，複製後整份換掉。</aside>
+      </section>
+
+      <!-- ── 2 章節頁 section：章節號 ＋ 一句標題 ＋ 一句說明 ── -->
+      <section class="slide" data-layout="section" id="s2" aria-label="章節：為什麼要改"
+        data-narration="第一部分，為什麼要改。舊流程有一半的人，在付款前就離開了。">
+        <div class="eyebrow">PART 01</div>
+        <p class="sc-num">01</p>
+        <h2>為什麼要改</h2>
+        <p class="lead">舊流程有一半的人，在付款前就離開。</p>
+        <aside class="notes">章節頁只放一句話，停兩秒讓大家換腦袋。</aside>
+      </section>
+
+      <!-- ── 3 重點條列 bullets：3–5 條，每條「結論一句（b）＋ 補充一句（span）」；可換成 <svg class="icon"> ── -->
+      <section class="slide" data-layout="bullets" id="s3" aria-label="舊流程的四個斷點"
+        data-narration="舊流程有四個斷點。要先註冊才能結帳。運費到最後才出現。付款失敗沒有任何提示。">
+        <div class="eyebrow">03 / THE PROBLEM <span class="badge">改版前數據</span></div>
+        <h2>舊流程有<em>四個斷點。</em></h2>
+        <p class="lead">四個斷點都有數字。最大的出口是「要先註冊」。</p>
+        <ol class="bl-list anim-list">
+          <li><div><b>要先註冊才能結帳</b><span>新客有 41% 在註冊這一步離開。</span></div></li>
+          <li><div><b>運費到最後一步才出現</b><span>看到運費後，23% 的人關掉頁面。</span></div></li>
+          <li><div><b>付款失敗沒有提示</b><span>每週約 120 筆訂單卡在這裡，沒有人知道。</span></div></li>
+          <li><div><b>手機上的欄位太小</b><span>手機的放棄率是桌機的 1.6 倍。</span></div></li>
+        </ol>
+        <div class="footer"><span>資料：2026 年 4–6 月結帳紀錄，約 3.6 萬筆（示範數字）。</span><span class="sl-num"></span></div>
+        <aside class="notes">四條都有數字。重點放在第一條：註冊是最大的出口。</aside>
+      </section>
+
+      <!-- ── 4 大數字 big-number：一個數字 ＋ 一句結論（h2）＋ 一句比較基準 ── -->
+      <section class="slide" data-layout="big-number" id="s4" aria-label="結果：放棄率下降 37%"
+        data-narration="先講結果。改版後，結帳放棄率下降百分之三十七。比較的是改版前後各八週。">
+        <div class="eyebrow">04 / RESULT <span class="badge">改版後 8 週</span></div>
+        <div class="bn-grid">
+          <p class="bn-num">−37<span class="bn-unit">%</span></p>
+          <div>
+            <h2 class="bn-line">結帳放棄率下降 37%：<em>從 52% 降到 33%。</em></h2>
+            <p class="bn-ctx">比較基準：改版前 8 週 vs 改版後 8 週，各約 1.2 萬筆結帳。</p>
+          </div>
+        </div>
+        <div class="callout">同期間流量持平（±3%），所以下降<strong>來自流程本身</strong>，不是來客變了。</div>
+        <div class="footer"><span>資料：結帳紀錄，2026-06-10 至 2026-10-01（示範數字）。</span><span class="sl-num"></span></div>
+        <aside class="notes">只講一個數字。有人問細節，再翻到表格那張。</aside>
+      </section>
+
+      <!-- ── 5 左右比較 compare：兩張卡、每張 ≤ 4 點；右卡（teal）＝建議／改後 ── -->
+      <section class="slide" data-layout="compare" id="s5" aria-label="改版前後比較"
+        data-narration="左邊是舊流程，五個步驟。右邊是新流程，只剩三步。訪客不用註冊，運費第二步就看得到。">
+        <div class="eyebrow">05 / WHAT CHANGED <span class="badge">App 08-06 · 官網 09-03</span></div>
+        <h2>五步變三步，<em>運費提早出現。</em></h2>
+        <p class="lead">右邊每一條，都對應上一張的一個斷點。</p>
+        <div class="grid g2">
+          <div class="card">
+            <svg class="icon"><use href="#i-split" /></svg>
+            <div class="number">BEFORE · 改版前</div>
+            <h3>五步結帳</h3>
+            <ul class="cp-points anim-list">
+              <li>註冊 → 地址 → 運送 → 確認 → 付款</li>
+              <li>沒有帳號就不能結帳</li>
+              <li>第 4 步才看到運費</li>
+              <li>付款失敗只顯示錯誤碼</li>
+            </ul>
+            <div class="result" style="color: var(--text-muted)">放棄率 52%</div>
+          </div>
+          <div class="card teal">
+            <svg class="icon"><use href="#i-check" /></svg>
+            <div class="number">AFTER · 改版後</div>
+            <h3>三步結帳</h3>
+            <ul class="cp-points anim-list">
+              <li>地址 → 運送與運費 → 付款</li>
+              <li>訪客可以直接結帳</li>
+              <li>第 2 步就看到運費</li>
+              <li>付款失敗寄提醒信</li>
+            </ul>
+            <div class="result">放棄率 33%</div>
+          </div>
+        </div>
+        <div class="footer"><span>改版日期：App 2026-08-06、官網 2026-09-03。</span><span class="sl-num"></span></div>
+        <aside class="notes">左右逐條對照講。右卡每一條都對應前面的一個斷點。</aside>
+      </section>
+
+      <!-- ── 6 流程圖 flow：.flow-wrap 包一張 SVG，節點 ≤ 7；畫法照 references/structure-diagrams.md ──
+           節點 <g class="node" data-id>、連線 <g class="edge" data-from data-to> 包 <path class="ln">；
+           marker id 整份要唯一（複製這張時改字尾） -->
+      <section class="slide" data-layout="flow" id="s6" aria-label="新流程"
+        data-narration="這是新流程。付款失敗時，系統寄一封提醒信。客人點信裡的連結，就回到付款這一步。">
+        <div class="eyebrow">06 / NEW FLOW <span class="badge">09-15 起</span></div>
+        <h2>付款失敗時，<em>系統把人接回來。</em></h2>
+        <p class="lead">四個主步驟不變；新增一條回頭路：失敗 → 提醒信 → 回到付款。</p>
+        <div class="flow-wrap">
+          <svg class="diagram" viewBox="0 0 1150 380" role="img" aria-labelledby="fl6-t fl6-d">
+            <title id="fl6-t">新結帳流程</title>
+            <desc id="fl6-d">收到訂單、確認付款、揀貨出貨、客戶簽收四步。付款失敗時寄付款提醒，客人點信裡的連結回到確認付款。</desc>
+            <defs>
+              <marker id="fl6-arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0 6 3 0 6" /></marker>
+              <marker id="fl6-arrow-hot" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path class="arrowhead-hot" d="M0 0 6 3 0 6" /></marker>
+            </defs>
+            <g class="edge" data-from="order" data-to="pay"><path class="ln" d="M240 90H294" marker-end="url(#fl6-arrow)" /></g>
+            <g class="edge" data-from="pay" data-to="ship"><path class="ln" d="M530 90H584" marker-end="url(#fl6-arrow)" /></g>
+            <g class="edge" data-from="ship" data-to="done"><path class="ln" d="M820 90H874" marker-end="url(#fl6-arrow)" /></g>
+            <g class="edge" data-from="pay" data-to="remind"><path class="ln" d="M370 140V254" marker-end="url(#fl6-arrow)" /></g>
+            <g class="edge" data-from="remind" data-to="pay"><path class="ln-hot" d="M460 260V146" marker-end="url(#fl6-arrow-hot)" /></g>
+            <text class="sub" x="358" y="204" text-anchor="end">付款失敗</text>
+            <text class="sub" x="472" y="204">點信裡的連結</text>
+            <g class="node" data-id="order">
+              <rect class="human" x="10" y="40" width="230" height="100" rx="14" />
+              <text class="actor" x="27" y="64">01 · 客人</text><text class="label" x="27" y="94">收到訂單</text><text class="sub" x="27" y="118">每天約 400 筆</text>
+            </g>
+            <g class="node" data-id="pay">
+              <rect class="ai" x="300" y="40" width="230" height="100" rx="14" />
+              <text class="actor" x="317" y="64">02 · 金流</text><text class="label" x="317" y="94">確認付款</text><text class="sub" x="317" y="118">約 3% 失敗</text>
+            </g>
+            <g class="node" data-id="ship">
+              <rect class="ai" x="590" y="40" width="230" height="100" rx="14" />
+              <text class="actor" x="607" y="64">03 · 倉庫</text><text class="label" x="607" y="94">揀貨出貨</text><text class="sub" x="607" y="118">24 小時內</text>
+            </g>
+            <g class="node" data-id="done">
+              <rect class="human" x="880" y="40" width="230" height="100" rx="14" />
+              <text class="actor" x="897" y="64">04 · 客人</text><text class="label" x="897" y="94">客戶簽收</text><text class="sub" x="897" y="118">平均 2.1 天</text>
+            </g>
+            <g class="node" data-id="remind">
+              <rect class="hot" x="300" y="260" width="230" height="100" rx="14" />
+              <text class="actor" x="317" y="284">新增 · 系統</text><text class="label" x="317" y="314">寄付款提醒</text><text class="sub" x="317" y="338">失敗後 1 小時</text>
+            </g>
+            <text class="sub" x="620" y="304">藍＝客人　綠＝系統　橘＝這次新增</text>
+          </svg>
+          <div class="flow-note"><b>新增的只有橘色這一格。</b> 以前付款失敗的訂單，就這樣不見了。</div>
+        </div>
+        <div class="footer"><span>提醒信自 2026-09-15 起寄送（示範內容）。</span><span class="sl-num"></span></div>
+        <aside class="notes">指著虛線講：這條回頭路是新加的。</aside>
+      </section>
+
+      <!-- ── 7 時間軸 timeline：3–6 個節點；is-done 已完成、is-now 進行中 ── -->
+      <section class="slide" data-layout="timeline" id="s7" aria-label="改版時程"
+        data-narration="改版花了四個月。八月先上 App，九月上官網。現在在追蹤提醒信的效果。">
+        <div class="eyebrow">07 / TIMELINE <span class="badge">06 → 10 月</span></div>
+        <h2>四個月，<em>先 App 後官網。</em></h2>
+        <p class="lead">先在 App 觀察兩週，數字對了才上官網。</p>
+        <ol class="tl-track anim-list">
+          <li class="tl-item is-done"><div class="card"><div class="number">2026-06</div><h3>訪談客服</h3><p>訪 12 位客服，整理出四個斷點。</p></div></li>
+          <li class="tl-item is-done"><div class="card"><div class="number">2026-07</div><h3>原型測試</h3><p>8 位客人試用三步流程。</p></div></li>
+          <li class="tl-item is-done"><div class="card"><div class="number">2026-08</div><h3>App 上線</h3><p>先上 App，觀察兩週。</p></div></li>
+          <li class="tl-item is-done"><div class="card"><div class="number">2026-09</div><h3>官網上線</h3><p>加上付款提醒信。</p></div></li>
+          <li class="tl-item is-now"><div class="card"><div class="number">2026-10 · 現在</div><h3>追蹤效果</h3><p>每週看放棄率與提醒信。</p></div></li>
+        </ol>
+        <div class="callout">11 月起移除舊流程——<strong>待今天拍板</strong>。</div>
+        <div class="footer"><span>綠點＝完成；橘點＝進行中。</span><span class="sl-num"></span></div>
+        <aside class="notes">時程不用逐點念，指出「現在」在哪裡就好。</aside>
+      </section>
+
+      <!-- ── 8 表格 table：≤ 6 列、≤ 5 欄；colgroup 定欄寬；要強調的那列加 is-hot ── -->
+      <section class="slide" data-layout="table" id="s8" aria-label="每一步離開多少人"
+        data-narration="這張表看每一步還掉多少人。運費這一步掉最多，百分之九。下一步要先處理它。">
+        <div class="eyebrow">08 / FUNNEL <span class="badge">改版後 8 週</span></div>
+        <h2>每一步還掉多少人：<em>運費那步最多。</em></h2>
+        <p class="lead">離開率＝這一步離開的人 ÷ 進入這一步的人。</p>
+        <div class="tb-wrap">
+          <table class="tb">
+            <colgroup><col style="width: 24%" /><col style="width: 18%" /><col style="width: 16%" /><col style="width: 42%" /></colgroup>
+            <thead><tr><th>步驟</th><th class="num">進入人數</th><th class="num">離開率</th><th>主要原因</th></tr></thead>
+            <tbody>
+              <tr><td>1 填寫地址</td><td class="num">12,000</td><td class="num">6%</td><td>地址欄在手機上難填</td></tr>
+              <tr class="is-hot"><td>2 運送與運費</td><td class="num">11,280</td><td class="num">9%</td><td>運費比預期高</td></tr>
+              <tr><td>3 付款</td><td class="num">10,265</td><td class="num">7%</td><td>付款方式不夠多</td></tr>
+              <tr><td>完成結帳</td><td class="num">9,546</td><td class="num">—</td><td>整體完成率 80%</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="footer"><span>資料：改版後 8 週結帳紀錄（示範數字）。</span><span class="sl-num"></span></div>
+        <aside class="notes">表格只念強調的那一列。其他列留給有興趣的人自己看。</aside>
+      </section>
+
+      <!-- ── 9 圖表 chart：一張 @unovis 圖（左卡）＋ 右側 ≤ 2 張解讀卡 ──
+           資料寫在 .ch-data（JSON）：labels、unit、series[{name, type: bar|line, values, color, dash}]；
+           缺值寫 null（折線會斷開，不畫成 0）。選圖照 chart skill 決策表；不同單位不共用 Y 軸。 -->
+      <section class="slide" data-layout="chart" id="s9" aria-label="結帳完成率趨勢"
+        data-narration="這是七個月的結帳完成率。八月改版後，完成率從六成升到七成七。九月起連續高於目標。">
+        <div class="eyebrow">09 / TREND <span class="badge">2026-04 → 10</span></div>
+        <h2>改版後，完成率從 <em>60% 升到 77%。</em></h2>
+        <p class="lead">柱是實際完成率；虛線是當月目標。</p>
+        <div class="ch-grid">
+          <figure class="card ch-card" style="margin: 0">
+            <div class="ch-legend"><span><i style="background: var(--chart-1)"></i>實際完成率</span><span><i class="ln dash" style="border-color: var(--chart-2)"></i>目標</span></div>
+            <div class="ch-plot" role="img" aria-label="2026 年 4 到 10 月結帳完成率，柱為實際、虛線為目標">
+              <script type="application/json" class="ch-data">
+                {
+                  "labels": ["4月", "5月", "6月", "7月", "8月", "9月", "10月"],
+                  "unit": "%",
+                  "series": [
+                    { "name": "實際完成率", "type": "bar", "values": [58, 59, 57, 60, 70, 74, 77], "color": "--chart-1" },
+                    { "name": "目標", "type": "line", "values": [60, 60, 60, 65, 70, 72, 75], "color": "--chart-2", "dash": true }
+                  ]
+                }
+              </script>
+            </div>
+          </figure>
+          <div class="ch-side anim-list">
+            <div class="card teal"><div class="number">AUG</div><h3>改版後跳升 10 點</h3><p>7 月 60% → 8 月 70%。</p></div>
+            <div class="card"><div class="number">SEP – OCT</div><h3>連續兩個月高於目標</h3><p>10 月 77%，目標 75%。</p></div>
+          </div>
+        </div>
+        <div class="footer"><span>資料：每月結帳紀錄（示範數字）。圖表用 @unovis，需要網路。</span><span class="sl-num"></span></div>
+        <aside class="notes">圖表載入要網路（@unovis CDN）。離線投影前先開一次，或改用存好的 PDF。</aside>
+      </section>
+
+      <!-- ── 10 結論與下一步 closing：左＝一句結論 ＋ ≤ 3 條已拍板；右＝≤ 4 條行動（誰 · 何時 ＋ 做什麼）── -->
+      <section class="slide" data-layout="closing" id="s10" aria-label="結論與下一步"
+        data-narration="結論是：三步結帳保留。十一月移除舊流程。下一步先串接 Apple Pay，十月底前完成。">
+        <div class="eyebrow pending">10 / DECISIONS &amp; NEXT <span class="badge">今天拍板</span></div>
+        <h2>三步結帳保留，<em>下一步補付款方式。</em></h2>
+        <p class="lead">兩件事今天拍板；三件事有人認領、有期限。</p>
+        <div class="cl-grid">
+          <div class="cl-main">
+            <div class="number">CONCLUSION</div>
+            <h3>改版有效：放棄率 <strong>−37%</strong>，完成率高於目標。</h3>
+            <div class="number">DECIDED TODAY</div>
+            <ul class="cl-decisions anim-list">
+              <li>11 月起移除舊的五步流程</li>
+              <li>提醒信改成失敗後 1 小時寄出</li>
+            </ul>
+          </div>
+          <ol class="cl-list anim-list">
+            <li class="card orange"><div class="number">工程組 · 10/31 前</div><h3>串接 Apple Pay</h3></li>
+            <li class="card orange"><div class="number">設計組 · 10/20 前</div><h3>改寫付款失敗的文案</h3></li>
+            <li class="card orange"><div class="number">產品組 · 每週一</div><h3>回報放棄率與提醒信點擊</h3></li>
+          </ol>
+        </div>
+        <div class="footer"><span>有問題請在本頁選字留言，或會後找產品組。</span><span class="sl-num"></span></div>
+        <aside class="notes">最後停在這張。逐條確認「誰、何時」，沒有人認領的項目當場指派。</aside>
+      </section>
+    </main>
+
+<!-- ── 操作列：← → 換頁、N 講者備註、O 總覽、F 全螢幕、P 列印 ── -->
+    <div class="deck-progress" aria-hidden="true"><i></i></div>
+    <nav class="deck-chrome" data-tw-lock aria-label="簡報操作">
+      <span class="deck-brand deck-wide">CHECKOUT / 結帳改版</span>
+      <button type="button" data-act="prev" aria-label="上一張">←</button>
+      <span class="deck-count" aria-live="polite">01 / 01</span>
+      <button type="button" data-act="next" aria-label="下一張">→</button>
+      <button type="button" class="deck-wide" data-act="notes" aria-pressed="false" title="講者備註（N）">備註</button>
+      <button type="button" data-act="grid" aria-pressed="false" title="總覽（O）">總覽</button>
+      <button type="button" class="deck-wide" data-act="full" title="全螢幕（F）">全螢幕</button>
+      <button type="button" class="deck-wide" data-act="print" title="列印／存成 PDF（P）">列印</button>
+    </nav>
+    <aside class="deck-notes" data-tw-lock hidden aria-label="講者備註">
+      <div class="deck-notes-head">講者備註 · <span class="deck-notes-no"></span></div>
+      <div class="deck-notes-body"></div>
+    </aside>
+    <div class="deck-badge" data-tw-lock data-vt-badge-host></div>
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- 簡報引擎：換頁、縮放、總覽、備註、深連結（#3）、影片場景 API   -->
+    <!-- 一張 slide ＝ 影片的一幕：__goToScene(n) 就是切到第 n 張       -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <script>
+      (function () {
+        "use strict";
+        var W = 1920,
+          H = 1080;
+        var root = document.documentElement;
+        var deck = document.querySelector(".deck");
+        if (!deck) return;
+        var slides = Array.prototype.slice.call(deck.querySelectorAll(".slide"));
+        var spacer = deck.querySelector(".deck-spacer");
+        var chrome = document.querySelector(".deck-chrome");
+        var countEl = chrome ? chrome.querySelector(".deck-count") : null;
+        var bar = document.querySelector(".deck-progress i");
+        var notesBox = document.querySelector(".deck-notes");
+        var q = new URLSearchParams(location.search);
+        var current = 0;
+        var grid = false;
+        var notesOpen = false;
+        var gridCols = 1,
+          gridPad = 0,
+          gridGap = 0,
+          gridTh = 0;
+        if (q.has("video")) root.classList.add("video-mode");
+        // 圖表由下方 module 畫；沒有圖表的頁一開始就算好了（render-video／slides-check 會等這個旗標）
+        window.__chartsReady = !document.querySelector(".ch-plot");
+
+        function pad(n) {
+          return String(n).padStart(2, "0");
+        }
+        function clamp(n) {
+          return Math.max(0, Math.min(slides.length - 1, n));
+        }
+        function notesOf(s) {
+          var a = s.querySelector(".notes");
+          return a ? a.textContent.trim().replace(/\s+/g, " ") : "";
+        }
+        function emit(name) {
+          document.dispatchEvent(new CustomEvent(name, { detail: { index: current, grid: grid } }));
+        }
+        slides.forEach(function (s, i) {
+          var num = s.querySelector(".sl-num");
+          if (num) num.textContent = pad(i + 1);
+        });
+
+        // 縮放：整張等比塞進可用區域（扣掉講者備註面板），置中留黑邊
+        function fit() {
+          var vw = deck.clientWidth;
+          var vh = deck.clientHeight;
+          if (!grid) {
+            var s = Math.min(vw / W, vh / H);
+            deck.style.setProperty("--deck-scale", String(s));
+            deck.style.setProperty("--deck-x", (vw - W * s) / 2 + "px");
+            deck.style.setProperty("--deck-y", (vh - H * s) / 2 + "px");
+            spacer.style.height = "0px";
+            return;
+          }
+          gridCols = vw < 760 ? 1 : vw < 1200 ? 2 : vw < 1700 ? 3 : 4;
+          gridGap = vw < 760 ? 16 : 28;
+          gridPad = vw < 760 ? 16 : 40;
+          var tw = (vw - gridPad * 2 - gridGap * (gridCols - 1)) / gridCols;
+          var gs = tw / W;
+          gridTh = H * gs;
+          deck.style.setProperty("--deck-gs", String(gs));
+          slides.forEach(function (sl, i) {
+            var c = i % gridCols,
+              r = Math.floor(i / gridCols);
+            sl.style.setProperty("--gx", gridPad + c * (tw + gridGap) + "px");
+            sl.style.setProperty("--gy", gridPad + r * (gridTh + gridGap) + "px");
+          });
+          var rows = Math.ceil(slides.length / gridCols);
+          spacer.style.height = gridPad * 2 + rows * gridTh + (rows - 1) * gridGap + "px";
+        }
+
+        function sync() {
+          slides.forEach(function (s, i) {
+            s.classList.toggle("active", i === current);
+            s.setAttribute("aria-hidden", grid || i === current ? "false" : "true");
+          });
+          if (countEl) countEl.textContent = pad(current + 1) + " / " + pad(slides.length);
+          if (bar) bar.style.width = ((current + 1) / slides.length) * 100 + "%";
+          if (chrome) {
+            chrome.querySelector('[data-act="prev"]').disabled = current === 0;
+            chrome.querySelector('[data-act="next"]').disabled = current === slides.length - 1;
+            chrome.querySelector('[data-act="grid"]').setAttribute("aria-pressed", String(grid));
+            chrome.querySelector('[data-act="notes"]').setAttribute("aria-pressed", String(notesOpen));
+          }
+          if (notesBox) {
+            notesBox.querySelector(".deck-notes-no").textContent = pad(current + 1) + " / " + pad(slides.length);
+            notesBox.querySelector(".deck-notes-body").textContent = notesOf(slides[current]) || "（這張沒有講者備註）";
+          }
+        }
+
+        function go(n, opts) {
+          current = clamp(n);
+          sync();
+          if (grid) {
+            var r = Math.floor(current / gridCols);
+            var top = gridPad + r * (gridTh + gridGap);
+            if (top < deck.scrollTop || top + gridTh > deck.scrollTop + deck.clientHeight)
+              deck.scrollTo({ top: Math.max(0, top - gridPad) });
+          } else if (!(opts && opts.noHash)) {
+            history.replaceState(null, "", "#" + (current + 1));
+          }
+          emit("deck:show");
+        }
+
+        function setGrid(on) {
+          grid = !!on;
+          deck.classList.toggle("is-grid", grid);
+          root.classList.toggle("deck-grid", grid);
+          if (grid) root.classList.remove("deck-idle");
+          fit();
+          go(current, { noHash: true });
+          if (!grid) deck.scrollTop = 0;
+          emit("deck:layout");
+        }
+
+        function setNotes(on) {
+          if (!notesBox) return;
+          notesOpen = !!on;
+          notesBox.hidden = !notesOpen;
+          root.classList.toggle("deck-notes-open", notesOpen);
+          root.style.setProperty("--deck-notes-h", notesOpen ? notesBox.offsetHeight + "px" : "0px");
+          fit();
+          sync();
+        }
+
+        function toggleFull() {
+          if (!document.fullscreenElement && root.requestFullscreen) root.requestFullscreen().catch(function () {});
+          else if (document.exitFullscreen) document.exitFullscreen().catch(function () {});
+        }
+
+        // 列印：先切總覽讓每張都畫過一次（圖表要看得到才畫得出來），再叫出列印
+        function printDeck() {
+          var was = grid;
+          if (!was) setGrid(true);
+          setTimeout(function () {
+            window.print();
+            if (!was) setGrid(false);
+          }, 600);
+        }
+
+        if (chrome) {
+          chrome.addEventListener("click", function (e) {
+            var b = e.target.closest("button[data-act]");
+            if (!b) return;
+            var act = b.getAttribute("data-act");
+            if (act === "prev") go(current - 1);
+            else if (act === "next") go(current + 1);
+            else if (act === "grid") setGrid(!grid);
+            else if (act === "notes") setNotes(!notesOpen);
+            else if (act === "full") toggleFull();
+            else if (act === "print") printDeck();
+          });
+        }
+
+        // 總覽：點一張就切回播放那一張（有選字時不算，留給評論）
+        deck.addEventListener("click", function (e) {
+          if (!grid) return;
+          var sel = window.getSelection && window.getSelection().toString();
+          if (sel) return;
+          var s = e.target.closest(".slide");
+          if (!s) return;
+          current = slides.indexOf(s);
+          setGrid(false);
+        });
+
+        // 鍵盤：← → 空白 PageUp/PageDown Home End；N 備註、O/G 總覽、F 全螢幕、P 列印、Esc 離開總覽
+        document.addEventListener("keydown", function (e) {
+          if (e.defaultPrevented || e.altKey || e.metaKey || e.ctrlKey || e.isComposing) return;
+          var t = e.target;
+          if (t && (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable)) return;
+          var k = e.key;
+          var cols = grid ? gridCols : 1;
+          if (k === "ArrowRight" || k === "PageDown" || (k === " " && !e.shiftKey)) go(current + 1);
+          else if (k === "ArrowLeft" || k === "PageUp" || (k === " " && e.shiftKey)) go(current - 1);
+          else if (k === "ArrowDown") go(current + cols);
+          else if (k === "ArrowUp") go(current - cols);
+          else if (k === "Home") go(0);
+          else if (k === "End") go(slides.length - 1);
+          else if (k === "n" || k === "N") setNotes(!notesOpen);
+          else if (k === "o" || k === "O" || k === "g" || k === "G") setGrid(!grid);
+          else if ((k === "Escape" || k === "Enter") && grid) setGrid(false);
+          else if (k === "f" || k === "F") toggleFull();
+          else if (k === "p" || k === "P") printDeck();
+          else return;
+          e.preventDefault();
+        });
+
+        // 觸控：左右滑換頁（總覽時不攔，讓它正常捲動）
+        var tx = null,
+          ty = null;
+        deck.addEventListener(
+          "touchstart",
+          function (e) {
+            if (grid || e.touches.length !== 1) return;
+            tx = e.touches[0].clientX;
+            ty = e.touches[0].clientY;
+          },
+          { passive: true },
+        );
+        deck.addEventListener("touchend", function (e) {
+          if (grid || tx === null) return;
+          var dx = e.changedTouches[0].clientX - tx,
+            dy = e.changedTouches[0].clientY - ty;
+          tx = null;
+          if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) go(current + (dx < 0 ? 1 : -1));
+        });
+
+        // 滑鼠停 2.5 秒：操作列淡出（投影時畫面乾淨），一動就回來
+        var idleT = null;
+        function wake() {
+          root.classList.remove("deck-idle");
+          clearTimeout(idleT);
+          idleT = setTimeout(function () {
+            if (!grid) root.classList.add("deck-idle");
+          }, 2500);
+        }
+        document.addEventListener("mousemove", wake);
+        wake();
+
+        window.addEventListener("resize", function () {
+          if (notesOpen) root.style.setProperty("--deck-notes-h", notesBox.offsetHeight + "px");
+          fit();
+          if (grid) go(current, { noHash: true });
+        });
+        window.addEventListener("hashchange", function () {
+          var m = location.hash.match(/^#s?(\d+)$/);
+          if (m) go(parseInt(m[1], 10) - 1, { noHash: true });
+        });
+
+        // ── 影片場景 API（render-video.mjs 用；跟一頁版同一組名字）──
+        // 旁白來源優先序：#video-scenes JSON → 各張 data-narration → 講者備註 .notes
+        window.__sceneCount = function () {
+          return slides.length;
+        };
+        window.__getScenes = function () {
+          var el = document.getElementById("video-scenes");
+          if (el) {
+            try {
+              var json = JSON.parse(el.textContent).scenes || [];
+              if (json.length) return json;
+            } catch (err) {
+              /* JSON 壞了就退回逐張讀 */
+            }
+          }
+          return slides.map(function (s, i) {
+            return { scene: i + 1, narration: (s.getAttribute("data-narration") || notesOf(s)).trim() };
+          });
+        };
+        // 決定性：同一個 n 永遠是同一張；重進同一張也會重播進場動畫
+        window.__goToScene = function (n) {
+          n = parseInt(n, 10) || 0;
+          if (grid) setGrid(false);
+          var i = clamp(Math.max(1, n) - 1);
+          slides[i].classList.remove("active");
+          void slides[i].offsetWidth;
+          go(i, { noHash: true });
+          return n;
+        };
+        window.__deck = {
+          count: slides.length,
+          current: function () {
+            return current + 1;
+          },
+          go: function (n) {
+            go(n - 1);
+          },
+          next: function () {
+            go(current + 1);
+          },
+          prev: function () {
+            go(current - 1);
+          },
+          grid: setGrid,
+          notes: setNotes,
+          print: printDeck,
+        };
+
+        // 起始：窄螢幕（手機直拿）直接用一欄總覽往下滑；網址 #3 或 ?scene=3 定位到第 3 張
+        var start = 0;
+        var hm = location.hash.match(/^#s?(\d+)$/);
+        if (hm) start = parseInt(hm[1], 10) - 1;
+        if (q.has("scene") && parseInt(q.get("scene"), 10) > 0) start = parseInt(q.get("scene"), 10) - 1;
+        current = clamp(start);
+        if (window.innerWidth < 760 && window.innerHeight > window.innerWidth && !q.has("video")) setGrid(true);
+        else {
+          fit();
+          go(current, { noHash: true });
+        }
+      })();
+    </script>
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- 圖表：照 chart skill 用 @unovis（CDN）；資料在各張的 .ch-data   -->
+    <!-- 只在那張 slide 看得到時才畫（藏著的 slide 量不到尺寸）           -->
+    <!-- 動畫關掉（duration 0）：影片逐格錄製時才不會錄到 JS 動畫          -->
+    <!-- 沒有圖表的簡報可整段刪除                                         -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <script type="module">
+      const plots = [...document.querySelectorAll(".ch-plot")];
+      if (plots.length) {
+        let U = null;
+        const done = new WeakSet();
+        const css = getComputedStyle(document.documentElement);
+        const tok = (v) => (v && v.startsWith("--") ? css.getPropertyValue(v).trim() : v);
+        const draw = (el) => {
+          if (done.has(el) || !el.clientWidth || !el.clientHeight) return;
+          const raw = el.querySelector(".ch-data");
+          let cfg;
+          try {
+            cfg = JSON.parse(raw.textContent);
+          } catch (e) {
+            el.insertAdjacentHTML("beforeend", '<div class="ch-fallback">圖表資料不是合法 JSON</div>');
+            done.add(el);
+            return;
+          }
+          const labels = cfg.labels || [];
+          const unit = cfg.unit || "";
+          // 缺值用 null → undefined（折線斷開，不砸到 0）
+          const rows = labels.map((_, i) => {
+            const r = {};
+            cfg.series.forEach((s, k) => {
+              const v = s.values[i];
+              r["s" + k] = v === null || v === undefined ? undefined : v;
+            });
+            return r;
+          });
+          const bars = cfg.series.map((s, k) => ({ s, k })).filter((x) => x.s.type !== "line");
+          const lines = cfg.series.map((s, k) => ({ s, k })).filter((x) => x.s.type === "line");
+          const x = (_d, i) => i;
+          const comps = [];
+          if (bars.length === 1) {
+            comps.push(new U.StackedBar({ x, y: (d) => d["s" + bars[0].k], color: tok(bars[0].s.color || "--chart-1"), roundedCorners: 6, barPadding: 0.34 }));
+          } else if (bars.length > 1) {
+            comps.push(
+              new U.GroupedBar({
+                x,
+                y: bars.map((b) => (d) => d["s" + b.k]),
+                color: (_d, i) => tok(bars[i].s.color || "--chart-" + (i + 1)),
+                roundedCorners: 6,
+                barPadding: 0.2,
+                groupPadding: 0.3,
+              }),
+            );
+          }
+          lines.forEach((l) =>
+            comps.push(
+              new U.Line({
+                x,
+                y: (d) => d["s" + l.k],
+                color: tok(l.s.color || "--chart-4"),
+                lineWidth: 4,
+                lineDashArray: l.s.dash ? [10, 8] : undefined,
+                curveType: U.CurveType.MonotoneX,
+              }),
+            ),
+          );
+          new U.XYContainer(
+            el,
+            {
+              width: el.clientWidth,
+              height: el.clientHeight,
+              duration: 0,
+              components: comps,
+              xAxis: new U.Axis({ type: "x", tickFormat: (i) => labels[i] ?? "", numTicks: labels.length, gridLine: false, tickLine: false, domainLine: false }),
+              yAxis: new U.Axis({ type: "y", tickFormat: (v) => v + unit, gridLine: true, tickLine: false, domainLine: false, numTicks: 5 }),
+            },
+            rows,
+          );
+          done.add(el);
+        };
+        const drawVisible = () => plots.forEach((el) => draw(el));
+        try {
+          U = await import("https://cdn.jsdelivr.net/npm/@unovis/ts/+esm");
+          drawVisible();
+          document.addEventListener("deck:show", drawVisible);
+          document.addEventListener("deck:layout", drawVisible);
+        } catch (e) {
+          plots.forEach((el) => el.insertAdjacentHTML("beforeend", '<div class="ch-fallback">圖表需要網路載入 @unovis（目前離線）</div>'));
+        }
+        window.__chartsReady = true;
+      }
+    </script>
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- 全頁評論系統 — 預設內建、可手動移除                       -->
+    <!-- 完整 snippet 見 references/interaction-patterns.md       -->
+    <!-- § 全頁評論系統（page-wide commenting，預設內建）         -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <style>
+      .vt-comment-trigger {
+        position: fixed;
+        z-index: 9998;
+        background: var(--paper);
+        border: 1.5px solid var(--clay);
+        border-radius: 999px;
+        padding: 6px 12px;
+        font-size: 12px;
+        color: var(--clay);
+        font-family: var(--mono);
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(20, 20, 19, 0.12);
+        display: none;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.15s;
+      }
+      .vt-comment-trigger:hover {
+        background: var(--clay);
+        color: var(--paper);
+      }
+      .vt-comment-popup {
+        position: fixed;
+        z-index: 9999;
+        background: var(--paper);
+        border: 1.5px solid var(--g300);
+        border-radius: 12px;
+        box-shadow: 0 12px 32px rgba(20, 20, 19, 0.15);
+        padding: 14px 16px;
+        width: 340px;
+        display: none;
+      }
+      .vt-comment-popup .quote {
+        background: var(--g100);
+        border-left: 3px solid var(--clay);
+        padding: 8px 10px;
+        font-size: 12.5px;
+        color: var(--g700);
+        line-height: 1.45;
+        margin-bottom: 10px;
+        max-height: 80px;
+        overflow-y: auto;
+      }
+      .vt-comment-popup textarea {
+        width: 100%;
+        border: 1.5px solid var(--g300);
+        border-radius: 8px;
+        padding: 8px 10px;
+        font-size: 13px;
+        font-family: var(--sans);
+        resize: vertical;
+        min-height: 60px;
+        color: var(--slate);
+        box-sizing: border-box;
+      }
+      .vt-comment-popup textarea:focus {
+        outline: none;
+        border-color: var(--clay);
+      }
+      .vt-comment-popup .actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 10px;
+        font-size: 11.5px;
+      }
+      .vt-comment-popup .hint {
+        color: var(--g500);
+        font-family: var(--mono);
+      }
+      .vt-comment-popup button.send {
+        background: var(--clay);
+        color: var(--paper);
+        border: none;
+        border-radius: 8px;
+        padding: 6px 14px;
+        font-size: 12.5px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .vt-comment-popup button.send:hover {
+        background: var(--clay-d);
+      }
+      .vt-comment-popup button.cancel {
+        background: transparent;
+        border: 1px solid var(--g300);
+        color: var(--g500);
+        border-radius: 8px;
+        padding: 6px 12px;
+        font-size: 12.5px;
+        cursor: pointer;
+        margin-right: 8px;
+      }
+      mark.vt-comment-mark {
+        background: var(--oat);
+        padding: 0 2px;
+        border-radius: 2px;
+        cursor: pointer;
+      }
+      mark.vt-comment-mark:hover {
+        background: #d5c4a8;
+      }
+      .vt-comment-pill {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        z-index: 9990;
+        background: var(--paper);
+        border: 1.5px solid var(--clay);
+        border-radius: 999px;
+        padding: 8px 14px;
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--clay);
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(20, 20, 19, 0.1);
+        display: none;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.15s;
+      }
+      .vt-comment-pill.is-active {
+        display: inline-flex;
+      }
+      .vt-comment-pill:hover {
+        background: var(--clay);
+        color: var(--paper);
+      }
+      .vt-comment-pill strong {
+        font-weight: 600;
+      }
+      .vt-comment-list {
+        position: fixed;
+        right: 16px;
+        bottom: 60px;
+        width: 360px;
+        max-height: 60vh;
+        z-index: 9991;
+        background: var(--paper);
+        border: 1.5px solid var(--g300);
+        border-radius: 14px;
+        box-shadow: 0 12px 32px rgba(20, 20, 19, 0.15);
+        display: none;
+        flex-direction: column;
+      }
+      .vt-comment-list.is-open {
+        display: flex;
+      }
+      .vt-comment-list-header {
+        background: var(--paper);
+        border-bottom: 1.5px solid var(--g200);
+        padding: 12px 16px;
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--g500);
+        font-weight: 600;
+        border-radius: 14px 14px 0 0;
+      }
+      .vt-comment-list-items {
+        overflow-y: auto;
+        flex: 1;
+      }
+      .vt-comment-item {
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--g200);
+      }
+      .vt-comment-item:last-child {
+        border-bottom: none;
+      }
+      .vt-comment-item .item-quote {
+        font-size: 11.5px;
+        color: var(--g500);
+        font-style: italic;
+        border-left: 2px solid var(--oat);
+        padding-left: 8px;
+        line-height: 1.4;
+        margin-bottom: 6px;
+      }
+      .vt-comment-item .item-body {
+        font-size: 13px;
+        color: var(--slate);
+        line-height: 1.5;
+      }
+      .vt-comment-item .item-del {
+        font-size: 11px;
+        color: var(--g500);
+        background: none;
+        border: none;
+        cursor: pointer;
+        margin-top: 4px;
+        padding: 0;
+        font-family: inherit;
+      }
+      .vt-comment-item .item-del:hover {
+        color: var(--red);
+      }
+      .vt-comment-list-footer {
+        border-top: 1.5px solid var(--g200);
+        padding: 10px 16px;
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        border-radius: 0 0 14px 14px;
+        background: var(--g100);
+      }
+      .vt-comment-list-footer button {
+        background: transparent;
+        border: 1.5px solid var(--g300);
+        border-radius: 8px;
+        padding: 6px 12px;
+        font-size: 12px;
+        color: var(--g700);
+        cursor: pointer;
+        font-family: inherit;
+      }
+      .vt-comment-list-footer button:hover {
+        border-color: var(--slate);
+        color: var(--slate);
+      }
+      .vt-comment-list-footer button.copy {
+        background: var(--clay);
+        color: var(--paper);
+        border-color: var(--clay);
+      }
+      .vt-comment-list-footer button.copy:hover {
+        background: var(--clay-d);
+      }
+      body.vt-has-existing-export .vt-comment-list-footer button.copy {
+        display: none;
+      }
+    </style>
+    <button class="vt-comment-trigger" id="vt-comment-trigger">💬 評論</button>
+    <div class="vt-comment-popup" id="vt-comment-popup">
+      <div class="quote" id="vt-popup-quote"></div>
+      <textarea
+        id="vt-popup-textarea"
+        placeholder="對這段文字的評論 / 疑問 / 補充..."
+      ></textarea>
+      <div class="actions">
+        <span class="hint">⌘ + Enter 送出 · Esc 取消</span>
+        <div>
+          <button class="cancel" id="vt-popup-cancel">取消</button
+          ><button class="send" id="vt-popup-send">送出</button>
+        </div>
+      </div>
+    </div>
+    <button class="vt-comment-pill" id="vt-comment-pill">
+      💬 <strong id="vt-count">0</strong>
+    </button>
+    <div class="vt-comment-list" id="vt-comment-list">
+      <div class="vt-comment-list-header">— 我的評論</div>
+      <div class="vt-comment-list-items" id="vt-comment-list-items"></div>
+      <div class="vt-comment-list-footer">
+        <button id="vt-clear-all">全部清除</button>
+        <button class="copy" id="vt-copy-fallback">📋 複製評論</button>
+      </div>
+    </div>
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- 共用複製工具 — file:// 下瀏覽器停用 navigator.clipboard，   -->
+    <!-- 一定會落到 execCommand 備援；備援也可能失敗，必須誠實回報   -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <script>
+      // 三段式：clipboard API → execCommand 備援 → 都失敗回 false（不假報成功）
+      window.vtCopyText = async function (text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          try {
+            await navigator.clipboard.writeText(text);
+            return true;
+          } catch (err) {
+            // 落到 execCommand 備援
+          }
+        }
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.setAttribute("readonly", "");
+        ta.style.position = "fixed";
+        ta.style.top = "-9999px";
+        ta.style.left = "-9999px";
+        document.body.appendChild(ta);
+        try {
+          ta.select();
+          ta.setSelectionRange(0, ta.value.length);
+          return document.execCommand("copy") === true;
+        } catch (err) {
+          return false;
+        } finally {
+          ta.remove();
+        }
+      };
+
+      // 複製失敗時的出路：把文字放進可選取區域並全選，使用者按一次 Cmd+C 即可
+      // target 有給就用頁面既有的預覽區（wrap 為它的外層、會自動展開）；
+      // 沒有預覽區就建一個臨時可選取區（雙擊可關閉）。
+      window.vtSelectForManualCopy = function (text, target, wrap) {
+        let node = target;
+        if (node) {
+          node.textContent = text;
+          if (wrap) wrap.classList.remove("hidden");
+        } else {
+          node = document.getElementById("vt-manual-copy-box");
+          if (!node) {
+            node = document.createElement("pre");
+            node.id = "vt-manual-copy-box";
+            node.title = "雙擊關閉";
+            node.style.cssText =
+              "position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:10000;" +
+              "max-width:min(720px,92vw);max-height:40vh;overflow:auto;white-space:pre-wrap;" +
+              "background:#fff;color:#111;border:1.5px solid #999;border-radius:10px;" +
+              "padding:14px 16px;font-size:12.5px;line-height:1.6;" +
+              "box-shadow:0 12px 40px rgba(0,0,0,.28)";
+            node.addEventListener("dblclick", function () {
+              node.remove();
+            });
+            document.body.appendChild(node);
+          }
+          node.textContent = text;
+        }
+        node.scrollIntoView({ block: "nearest" });
+        const sel = window.getSelection();
+        if (sel) {
+          const range = document.createRange();
+          range.selectNodeContents(node);
+          sel.removeAllRanges();
+          sel.addRange(range);
+        }
+        return node;
+      };
+    </script>
+
+    <script>
+      (function () {
+        const S = "vt-comments-" + location.pathname,
+          L = 80;
+        let c = JSON.parse(localStorage.getItem(S) || "[]"),
+          sel = null;
+        const $ = (i) => document.getElementById(i),
+          tr = $("vt-comment-trigger"),
+          p = $("vt-comment-popup"),
+          pq = $("vt-popup-quote"),
+          pt = $("vt-popup-textarea"),
+          pi = $("vt-comment-pill"),
+          ce = $("vt-count"),
+          le = $("vt-comment-list"),
+          li = $("vt-comment-list-items");
+        window.vtCollectComments = function () {
+          if (!c.length) return "";
+          return (
+            "\n\n---\n\n" +
+            c
+              .map((x) => {
+                const q =
+                  x.quote.length > L ? x.quote.slice(0, L) + "…" : x.quote;
+                return `@評論「${q}」\n  → ${x.body}`;
+              })
+              .join("\n\n")
+          );
+        };
+        function hs(e) {
+          if (
+            e.target.closest(
+              ".vt-comment-popup,.vt-comment-trigger,.vt-comment-pill,.vt-comment-list,button,input,select,textarea",
+            )
+          )
+            return;
+          setTimeout(() => {
+            const s = getSelection(),
+              t = s.toString().trim();
+            if (!t || t.length < 2) {
+              tr.style.display = "none";
+              return;
+            }
+            const r = s.getRangeAt(0),
+              b = r.getBoundingClientRect();
+            sel = { text: t, range: r.cloneRange() };
+            tr.style.display = "inline-flex";
+            tr.style.top = Math.max(8, b.top - 38) + "px";
+            tr.style.left = Math.max(8, b.left + b.width / 2 - 40) + "px";
+          }, 10);
+        }
+        document.addEventListener("mouseup", hs);
+        document.addEventListener("touchend", hs);
+        tr.addEventListener("click", op);
+        function op() {
+          if (!sel) return;
+          const q = sel.text.length > L ? sel.text.slice(0, L) + "…" : sel.text;
+          pq.textContent = q;
+          pt.value = "";
+          const t = tr.getBoundingClientRect();
+          let l = t.left;
+          if (l + 340 > innerWidth - 16) l = innerWidth - 356;
+          let to = t.bottom + 6;
+          if (to + 220 > innerHeight) to = t.top - 230;
+          p.style.left = Math.max(8, l) + "px";
+          p.style.top = Math.max(8, to) + "px";
+          tr.style.display = "none";
+          p.style.display = "block";
+          setTimeout(() => pt.focus(), 50);
+        }
+        $("vt-popup-cancel").addEventListener("click", cp);
+        $("vt-popup-send").addEventListener("click", sc);
+        pt.addEventListener("keydown", (e) => {
+          if (e.isComposing || e.keyCode === 229) return;
+          if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+            e.preventDefault();
+            e.stopPropagation();
+            sc();
+          }
+          if (e.key === "Escape") cp();
+        });
+        function cp() {
+          p.style.display = "none";
+          sel = null;
+        }
+        function sc() {
+          const b = pt.value.trim();
+          if (!b || !sel) return cp();
+          const id = "c-" + Date.now(),
+            q = sel.text;
+          try {
+            const m = document.createElement("mark");
+            m.className = "vt-comment-mark";
+            m.dataset.commentId = id;
+            sel.range.surroundContents(m);
+          } catch (e) {}
+          c.push({ id, quote: q, body: b, ts: Date.now() });
+          ps();
+          rn();
+          cp();
+          getSelection().removeAllRanges();
+        }
+        function ps() {
+          localStorage.setItem(S, JSON.stringify(c));
+        }
+        function rn() {
+          ce.textContent = c.length;
+          pi.classList.toggle("is-active", c.length > 0);
+          if (!c.length) le.classList.remove("is-open");
+          li.innerHTML = c
+            .map((x) => {
+              const q =
+                x.quote.length > 60 ? x.quote.slice(0, 60) + "…" : x.quote;
+              return `<div class="vt-comment-item" data-id="${x.id}"><div class="item-quote">「${eh(q)}」</div><div class="item-body">${eh(x.body)}</div><button class="item-del" data-del="${x.id}">刪除</button></div>`;
+            })
+            .join("");
+          li.querySelectorAll("[data-del]").forEach((b) =>
+            b.addEventListener("click", () => dc(b.dataset.del)),
+          );
+        }
+        function dc(id) {
+          c = c.filter((x) => x.id !== id);
+          document
+            .querySelectorAll(`mark.vt-comment-mark[data-comment-id="${id}"]`)
+            .forEach((m) => {
+              const pr = m.parentNode;
+              while (m.firstChild) pr.insertBefore(m.firstChild, m);
+              pr.removeChild(m);
+              pr.normalize();
+            });
+          ps();
+          rn();
+        }
+        function eh(s) {
+          return String(s).replace(
+            /[&<>"']/g,
+            (ch) =>
+              ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#39;",
+              })[ch],
+          );
+        }
+        pi.addEventListener("click", () => le.classList.toggle("is-open"));
+        $("vt-clear-all").addEventListener("click", () => {
+          if (!c.length) return;
+          if (!confirm("確定清除全部 " + c.length + " 條評論？")) return;
+          document.querySelectorAll("mark.vt-comment-mark").forEach((m) => {
+            const pr = m.parentNode;
+            while (m.firstChild) pr.insertBefore(m.firstChild, m);
+            pr.removeChild(m);
+            pr.normalize();
+          });
+          c = [];
+          ps();
+          rn();
+        });
+        $("vt-copy-fallback").addEventListener("click", async (e) => {
+          if (!c.length) return;
+          const t = window.vtCollectComments().replace(/^\n\n---\n\n/, ""),
+            b = e.currentTarget,
+            o = b.textContent;
+          const ok = await window.vtCopyText(t);
+          if (ok) {
+            b.textContent = "✅ 已複製";
+          } else {
+            // 複製不到就不假報成功：把評論放進臨時區域並全選
+            window.vtSelectForManualCopy(t);
+            b.textContent = "已選取 → 請按 Cmd+C";
+          }
+          setTimeout(() => (b.textContent = o), ok ? 2000 : 6000);
+        });
+        setTimeout(() => {
+          if (typeof window.vtBuildDecisionExport === "function")
+            document.body.classList.add("vt-has-existing-export");
+        }, 100);
+        document.addEventListener("click", (e) => {
+          if (
+            p.style.display === "block" &&
+            !e.target.closest(".vt-comment-popup,.vt-comment-trigger")
+          )
+            cp();
+        });
+        rn();
+      })();
+    </script>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- Session 識別 — 多視窗並行時分辨這份是哪個 session 產的     -->
+    <!-- 產出時把 scripts/session-label.sh 的結果填進下面兩個值      -->
+    <!-- 留空 = 整段停用（範本原檔即此狀態）                        -->
+    <!-- 完整說明見 references/session-identity.md                 -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <script>
+      window.VT_SESSION = { label: "", id: "", project: "" };
+    </script>
+    <style>
+      .vt-session-badge {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        padding: 5px 16px;
+        background: var(--vt-session-color, #666);
+        color: #fff;
+        font-family: var(--mono, ui-monospace, monospace);
+        font-size: 11.5px;
+        letter-spacing: 0.06em;
+      }
+      .vt-session-badge .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #fff;
+        opacity: 0.85;
+        flex-shrink: 0;
+      }
+      .vt-session-badge .lb {
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+      .vt-session-badge .id {
+        margin-left: auto;
+        opacity: 0.75;
+      }
+    </style>
+    <script>
+      (function () {
+        const s = window.VT_SESSION || {};
+        if (!s.label) return;
+        const seed = s.id || s.label;
+        let hue = 7;
+        for (const c of seed) hue = (hue * 31 + c.charCodeAt(0)) % 360;
+        const col = `hsl(${hue} 58% 42%)`;
+        document.title = `${s.label} · ${document.title}`;
+        try {
+          const cv = document.createElement("canvas");
+          cv.width = cv.height = 64;
+          const g = cv.getContext("2d");
+          g.fillStyle = col;
+          if (g.roundRect) {
+            g.beginPath();
+            g.roundRect(2, 2, 60, 60, 14);
+            g.fill();
+          } else {
+            g.fillRect(2, 2, 60, 60);
+          }
+          g.fillStyle = "#fff";
+          g.font = '700 38px ui-sans-serif, system-ui, "PingFang TC"';
+          g.textAlign = "center";
+          g.textBaseline = "middle";
+          const ch = (s.label.match(/[A-Za-z0-9\u4e00-\u9fff]/) || ["?"])[0];
+          g.fillText(ch.toUpperCase(), 32, 36);
+          const link = document.createElement("link");
+          link.rel = "icon";
+          link.href = cv.toDataURL();
+          document.head.appendChild(link);
+        } catch (e) {}
+        const b = document.createElement("div");
+        b.className = "vt-session-badge";
+        b.style.setProperty("--vt-session-color", col);
+        b.innerHTML =
+          '<span class="dot"></span><span class="lb"></span><span class="id"></span>';
+        b.querySelector(".lb").textContent = s.label;
+        b.querySelector(".id").textContent = s.id || "";
+        const host = document.querySelector("[data-vt-badge-host]") || document.body;
+        host.insertBefore(b, host.firstChild);
+      })();
+    </script>
+  </body>
+</html>

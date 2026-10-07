@@ -157,8 +157,11 @@ function probe() {
     if (el.children.length || el instanceof SVGElement || txt.length < 4) continue;
     if (parseFloat(cs.opacity) < 0.05) continue;
     if (cs.clipPath && cs.clipPath !== "none") continue; // 無障礙的視覺隱藏不算壞
-    const fs = parseFloat(cs.fontSize) || 16;
-    const lh = parseFloat(cs.lineHeight) || fs * 1.5;
+    // 量的是畫面上的大小：被 CSS transform 縮放的區塊（簡報的 1920×1080 畫布整張縮小）
+    // getBoundingClientRect 已縮放、computed fontSize 沒縮放——字級要乘同一個比例才比得起來
+    const k = el.offsetWidth > 0 ? r.width / el.offsetWidth : 1;
+    const fs = (parseFloat(cs.fontSize) || 16) * k;
+    const lh = (parseFloat(cs.lineHeight) || fs / k * 1.5) * k;
 
     // 直排壓縮：可用寬度不到三個字，卻疊了五行以上
     if (r.width > 0 && r.width < fs * 3 && Math.round(r.height / lh) >= 5) {
