@@ -61,6 +61,14 @@ It picks a layout to fit the content instead of stamping the same template every
 | "What's the trend in these numbers?" | A chart, not a pile of numbers |
 | "Draw this process for me" | A flow diagram, with branches, handoffs and loops back |
 
+### From a sentence to an explainer video
+
+Any topic can climb four steps: **text → one diagram → one-page HTML → explainer video**.
+
+- **One-page mode**: say "fit it on one page" or "make a slide for the screen" and you get a page that fills exactly one 1920×1080 screen — a title, one main diagram, at most three takeaways, no scrolling.
+- **Video mode**: say "turn this into an explainer video" and the page builds up scene by scene with narration and subtitles, exported as an mp4. Narration uses the Mac's built-in voices by default (free, offline); set an ElevenLabs key to use that instead. Needs `ffmpeg` and Playwright — see `skills/html-visualizer/references/video-explainer.md`.
+- On-page text follows a controlled-language style (roughly 80% of ASD-STE100): short sentences, one idea per sentence, jargon defined on first use.
+
 ### Send it to a colleague — it reads fine on a phone
 
 ![Three phones showing an explainer, a decision page and a chart page, with text and cards using the full screen width](docs/images/mobile.webp)

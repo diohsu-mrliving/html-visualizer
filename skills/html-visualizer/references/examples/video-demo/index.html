@@ -1,0 +1,1105 @@
+<!doctype html>
+<html lang="zh-TW" data-layout="onepage">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>快取：把答案先放在手邊</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* ════════════════════════════════════════════ */
+      /* 一頁版（onepage）— 1920×1080 一個畫面放完：      */
+      /* 標題 → 一張主圖 → ≤3 條重點。不捲動。           */
+      /* 規則見 references/onepage.md；token 同 base-template */
+      /* ════════════════════════════════════════════ */
+      :root {
+        --wrap-max: 1840px; /* 內容寬度：設定檔 tokens.layout.maxWidth 與「風格設定」改的就是它 */
+        --ivory: #faf9f5;
+        --paper: #ffffff;
+        --slate: #141413;
+        --clay: #d97757;
+        --clay-d: #b85c3e;
+        --oat: #e3dacc;
+        --olive: #788c5d;
+        --g100: #f0eee6;
+        --g200: #e6e3da;
+        --g300: #d1cfc5;
+        --g500: #87867f;
+        --g700: #3d3d3a;
+
+        --serif: ui-serif, Georgia, "Times New Roman", Times, serif;
+        --sans:
+          system-ui, -apple-system, "Segoe UI", Roboto, "PingFang TC",
+          "Noto Sans TC", Helvetica, Arial, sans-serif;
+        --mono: ui-monospace, "SF Mono", Menlo, Monaco, Consolas, monospace;
+
+        --accent-soft: #fbe9df;
+        --bg: var(--ivory);
+        --text: var(--slate);
+        --accent: var(--clay);
+
+        /* 場景動畫（影片模式）一個時鐘：見 references/video-explainer.md */
+        --scene-step: 520ms;
+        --scene-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--ivory);
+        color: var(--slate);
+        font-family: var(--sans);
+        font-size: 18px;
+        line-height: 1.55;
+        -webkit-font-smoothing: antialiased;
+        font-synthesis: none; /* 擋掉中文合成斜體／粗體，理由見 base-template */
+      }
+      p,
+      li {
+        text-wrap: pretty;
+      }
+      h1,
+      h2,
+      h3 {
+        text-wrap: balance;
+      }
+
+      /* ── 骨架：三列（標題／主體／頁尾），至少一個視窗高 ──
+         用 min-height 不用 height：內容真的放不下時頁面會變長、
+         一頁檢查（onepage-check）量得到，而不是互相蓋住看不出來。 */
+      .op {
+        width: min(96vw, var(--wrap-max, 1840px));
+        margin: 0 auto;
+        min-height: 100vh;
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr) auto;
+        gap: 28px;
+        padding: 44px 0 28px;
+      }
+
+      /* ── 標題區 ── */
+      .op-head .eyebrow {
+        font-family: var(--mono);
+        font-size: 14px;
+        letter-spacing: 0.1em;
+        color: var(--g500);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+      .op-head .eyebrow::before {
+        content: "";
+        width: 28px;
+        height: 2px;
+        background: var(--clay);
+      }
+      /* 選擇器比 Tailwind preflight 高一級（理由見 base-template） */
+      body .op-head h1 {
+        font-family: var(--serif);
+        font-weight: 500;
+        font-size: clamp(34px, 3.2vw, 60px);
+        line-height: 1.08;
+        letter-spacing: -0.015em;
+        margin: 0;
+        color: var(--slate);
+      }
+      h1 em {
+        font-style: normal;
+        font-weight: 700;
+        color: var(--clay);
+      }
+      .op-head .op-sub {
+        font-size: clamp(17px, 1.25vw, 23px);
+        color: var(--g700);
+        margin: 12px 0 0;
+        max-width: 72ch;
+      }
+
+      /* ── 主體：左主圖、右重點 ── */
+      .op-main {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(340px, 30%);
+        gap: 36px;
+        min-height: 0;
+      }
+      .op-main > * {
+        min-width: 0;
+      }
+      .op-fig {
+        position: relative;
+        min-height: 420px;
+        margin: 0;
+      }
+      /* 主圖填滿格子：絕對定位讓 SVG 不撐高頁面，等比縮放 */
+      .op-fig .figure {
+        position: absolute;
+        inset: 0;
+        background: var(--paper);
+        border: 1.5px solid var(--g300);
+        border-radius: 14px;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .op-fig svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      /* 一頁版的圖要在投影／影片上讀得到：字比一般頁大一階（viewBox 單位） */
+      .op-fig svg text {
+        font-family: var(--sans);
+        font-size: 17px;
+        fill: var(--g700);
+      }
+      .op-fig svg text.n {
+        font-size: 21px;
+        font-weight: 600;
+        fill: var(--slate);
+      }
+      .op-fig svg text.accent {
+        fill: var(--clay-d);
+      }
+
+      .op-take-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        counter-reset: tk;
+      }
+      .op-side {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .op-side h2 {
+        font-family: var(--mono);
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        color: var(--g500);
+        margin: 0 0 2px;
+      }
+      .op-take {
+        counter-increment: tk;
+        background: var(--paper);
+        border: 1.5px solid var(--g300);
+        border-left: 4px solid var(--clay);
+        border-radius: 12px;
+        padding: 18px 22px 18px 64px;
+        position: relative;
+      }
+      .op-take::before {
+        content: counter(tk);
+        position: absolute;
+        left: 20px;
+        top: 16px;
+        font-family: var(--serif);
+        font-size: 30px;
+        line-height: 1;
+        color: var(--clay);
+      }
+      .op-take strong {
+        display: block;
+        font-size: clamp(18px, 1.3vw, 24px);
+        line-height: 1.35;
+        font-weight: 650;
+        color: var(--slate);
+      }
+      .op-take span {
+        display: block;
+        margin-top: 6px;
+        font-size: clamp(15px, 0.95vw, 18px);
+        color: var(--g700);
+      }
+
+      /* ── 頁尾：一行出處 ── */
+      .op-foot {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        font-family: var(--mono);
+        font-size: 13px;
+        color: var(--g500);
+        border-top: 1.5px solid var(--g300);
+        padding-top: 12px;
+      }
+
+      /* ── 窄螢幕／矮螢幕：退回一般捲動頁（一頁限制只針對 ≥1100px 的桌機／影片）── */
+      @media (max-width: 1100px) {
+        .op {
+          min-height: 0;
+          width: 100%;
+          padding: 28px 16px 40px;
+        }
+        .op-main {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .op-fig {
+          min-height: 0;
+        }
+        .op-fig .figure {
+          position: static;
+          overflow-x: auto;
+          padding: 12px;
+        }
+        .op-fig svg {
+          height: auto;
+        }
+        .op-foot {
+          flex-direction: column;
+        }
+      }
+
+      /* ════════════════════════════════════════════ */
+      /* 場景（影片模式）— 平常全部顯示（靜態幀資訊完整）；  */
+      /* 呼叫 __goToScene(n) 或網址帶 ?scene=n 才逐幕出現。  */
+      /* ════════════════════════════════════════════ */
+      .scene-mode [data-scene] {
+        opacity: 0;
+        transition: opacity var(--scene-step) var(--scene-ease),
+          transform var(--scene-step) var(--scene-ease);
+      }
+      /* HTML 元素多一點位移；SVG 只淡入（CSS transform 會蓋掉 SVG 的 transform 屬性） */
+      .scene-mode [data-scene]:not(svg *) {
+        transform: translateY(14px);
+      }
+      .scene-mode [data-scene].scene-on {
+        opacity: 1;
+        transform: none;
+      }
+      /* 畫線：路徑加 pathLength="1" class="draw"，進場時從頭畫到尾 */
+      .scene-mode [data-scene] .draw {
+        stroke-dasharray: 1;
+        stroke-dashoffset: 1;
+        transition: stroke-dashoffset calc(var(--scene-step) * 1.8) var(--scene-ease) 120ms;
+      }
+      .scene-mode [data-scene].scene-on .draw {
+        stroke-dashoffset: 0;
+      }
+      /* 當前這一幕的節點框加重，讓視線跟著旁白走 */
+      .scene-mode [data-scene].scene-now .box {
+        stroke: var(--clay);
+        stroke-width: 2.5;
+      }
+      /* 影片模式藏掉介面元件（評論、session 徽章、風格設定） */
+      .video-mode .vt-comment-trigger,
+      .video-mode .vt-comment-pill,
+      .video-mode .vt-comment-popup,
+      .video-mode .vt-comment-list,
+      .video-mode .vt-session-badge,
+      .video-mode .vt-tw-root {
+        display: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="op">
+      <!-- ── 標題：一行主標 ＋ 一句副標（≤ 40 字，照 references/writing-ste.md） ── -->
+      <header class="op-head">
+        <div class="eyebrow">影片模式範例 · 3 幕</div>
+        <h1>快取：把答案先<em>放在手邊</em></h1>
+        <p class="op-sub">同一個問題問第二次，系統不用再跑一趟資料庫。</p>
+      </header>
+
+      <main class="op-main">
+        <!-- ── 一張主圖：SVG 結構圖，畫法見 references/structure-diagrams.md ──
+             data-scene="N"：影片第 N 幕才出現（放在沒有 transform 屬性的外層 <g>） -->
+        <section id="diagram" class="op-fig">
+          <div class="figure">
+            <svg
+              viewBox="0 0 1000 520"
+              preserveAspectRatio="xMidYMid meet"
+              role="img"
+              aria-labelledby="cache-title cache-desc"
+            >
+              <title id="cache-title">查詢先經過快取</title>
+              <desc id="cache-desc">使用者的查詢先到快取。快取沒有答案，才去查資料庫。</desc>
+              <defs>
+                <marker id="cache-arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+                  <polygon points="0 0, 10 4, 0 8" fill="#87867f" />
+                </marker>
+                <marker id="cache-arrow-accent" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+                  <polygon points="0 0, 10 4, 0 8" fill="#b85c3e" />
+                </marker>
+              </defs>
+              <rect width="100%" height="100%" fill="#ffffff" />
+
+              <!-- 第 1 幕：使用者 → 快取 -->
+              <g data-scene="1">
+                <g class="edge" data-from="user" data-to="cache" data-label="查詢">
+                  <path class="ln draw" pathLength="1" d="M 240,220 H 396" fill="none" stroke="#b85c3e" stroke-width="2.4" marker-end="url(#cache-arrow-accent)" />
+                </g>
+                <g class="elabel">
+                  <rect x="290" y="190" width="56" height="22" fill="#ffffff" />
+                  <text x="318" y="206" text-anchor="middle">查詢</text>
+                </g>
+              </g>
+              <!-- 第 2 幕：快取 → 資料庫（沒有才查，虛線） -->
+              <g data-scene="2">
+                <g class="edge" data-from="cache" data-to="db" data-label="沒有才查">
+                  <path class="ln" d="M 600,220 H 756" fill="none" stroke="#87867f" stroke-width="2" stroke-dasharray="6,5" marker-end="url(#cache-arrow)" />
+                </g>
+                <g class="elabel">
+                  <rect x="636" y="190" width="84" height="22" fill="#ffffff" />
+                  <text x="678" y="206" text-anchor="middle">沒有才查</text>
+                </g>
+              </g>
+
+              <g data-scene="1">
+                <g class="node" data-id="user" data-kind="external" data-title="使用者" transform="translate(40,160)">
+                  <rect class="box" width="200" height="120" rx="8" fill="#ffffff" stroke="#87867f" stroke-width="1.5" />
+                  <text x="100" y="52" class="n" text-anchor="middle">使用者</text>
+                  <text x="100" y="84" text-anchor="middle">送出查詢</text>
+                </g>
+                <g class="node" data-id="cache" data-kind="ours" data-title="快取" transform="translate(400,160)">
+                  <rect class="box" width="200" height="120" rx="8" fill="#fbe9df" stroke="#d97757" stroke-width="1.5" />
+                  <text x="100" y="52" class="n" text-anchor="middle">快取</text>
+                  <text x="100" y="84" text-anchor="middle">常用答案</text>
+                </g>
+              </g>
+              <g data-scene="2">
+                <g class="node" data-id="db" data-kind="store" data-title="資料庫" transform="translate(760,160)">
+                  <rect class="box" width="200" height="120" rx="8" fill="#ffffff" stroke="#141413" stroke-width="1.5" />
+                  <text x="100" y="52" class="n" text-anchor="middle">資料庫</text>
+                  <text x="100" y="84" text-anchor="middle">完整資料</text>
+                </g>
+              </g>
+
+              <!-- 第 3 幕：兩條路的時間對照 -->
+              <g data-scene="3">
+                <text x="500" y="340" class="n accent" text-anchor="middle">快取有答案</text>
+                <text x="500" y="372" class="accent" text-anchor="middle">約 40 毫秒</text>
+                <text x="860" y="340" class="n" text-anchor="middle">查資料庫</text>
+                <text x="860" y="372" text-anchor="middle">約 800 毫秒</text>
+                <path d="M 420,420 H 448" fill="none" stroke="#d97757" stroke-width="10" stroke-linecap="round" />
+                <path d="M 420,450 H 980" fill="none" stroke="#87867f" stroke-width="10" stroke-linecap="round" />
+                <text x="400" y="426" text-anchor="end">快取</text>
+                <text x="400" y="456" text-anchor="end">資料庫</text>
+              </g>
+            </svg>
+          </div>
+        </section>
+
+        <!-- ── 重點：最多 3 條，每條一句結論（≤ 25 字）＋一句補充 ── -->
+        <section id="takeaways" class="op-side">
+          <h2>三個重點</h2>
+          <ol class="op-take-list">
+            <li class="op-take" data-takeaway data-scene="1">
+              <strong>快取存的是最近問過的答案。</strong>
+              <span>例如商品頁、匯率、登入狀態。</span>
+            </li>
+            <li class="op-take" data-takeaway data-scene="2">
+              <strong>快取沒有答案，系統才查資料庫。</strong>
+              <span>查到後，系統把答案存進快取。</span>
+            </li>
+            <li class="op-take" data-takeaway data-scene="3">
+              <strong>快取有答案：約 40 毫秒，快 20 倍。</strong>
+              <span>資料變了要清快取，否則讀到舊答案。</span>
+            </li>
+          </ol>
+        </section>
+      </main>
+
+      <footer class="op-foot">
+        <span>數字為示意：一般網站量級</span>
+        <span>html-visualizer · 影片模式範例</span>
+      </footer>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- 影片旁白：每幕一段（≤ 15 秒、≤ 3 句），只做一頁版可整段刪除 -->
+    <!-- render-video.mjs 讀這段產生配音與字幕                     -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <script type="application/json" id="video-scenes">
+      {
+        "scenes": [
+          { "scene": 1, "narration": "使用者送出查詢。系統先看快取裡有沒有答案。快取是放常用答案的地方。" },
+          { "scene": 2, "narration": "快取沒有答案，系統才去查資料庫。查到後，系統把答案存進快取。" },
+          { "scene": 3, "narration": "下次同樣的問題，快取直接回答。只要四十毫秒，比資料庫快二十倍。資料變了，要記得清掉快取。" }
+        ]
+      }
+    </script>
+
+    <!-- 場景引擎：平常不做任何事；__goToScene(n) 或 ?scene=n 才進場景模式 -->
+    <script>
+      (function () {
+        var root = document.documentElement;
+        function items() {
+          return Array.prototype.slice.call(document.querySelectorAll("[data-scene]"));
+        }
+        function readScenes() {
+          var el = document.getElementById("video-scenes");
+          if (!el) return [];
+          try {
+            return JSON.parse(el.textContent).scenes || [];
+          } catch (e) {
+            return [];
+          }
+        }
+        function count() {
+          var n = readScenes().length;
+          items().forEach(function (el) {
+            n = Math.max(n, parseInt(el.getAttribute("data-scene"), 10) || 0);
+          });
+          return n;
+        }
+        // 旁白來源：JSON 區塊優先；沒有就收集各幕元素上的 data-narration
+        window.__getScenes = function () {
+          var json = readScenes();
+          if (json.length) return json;
+          var out = [];
+          for (var i = 1; i <= count(); i++) {
+            var t = items()
+              .filter(function (el) {
+                return parseInt(el.getAttribute("data-scene"), 10) === i && el.getAttribute("data-narration");
+              })
+              .map(function (el) {
+                return el.getAttribute("data-narration");
+              })
+              .join("");
+            out.push({ scene: i, narration: t });
+          }
+          return out;
+        };
+        window.__sceneCount = count;
+        // 決定性：同一個 n 永遠得到同一個畫面（只切 class，動畫交給 CSS）
+        window.__goToScene = function (n) {
+          n = parseInt(n, 10) || 0;
+          root.classList.add("scene-mode");
+          root.setAttribute("data-scene-now", String(n));
+          items().forEach(function (el) {
+            var s = parseInt(el.getAttribute("data-scene"), 10) || 0;
+            el.classList.toggle("scene-on", s <= n);
+            el.classList.toggle("scene-now", s === n);
+          });
+          return n;
+        };
+        var q = new URLSearchParams(location.search);
+        if (q.has("video")) root.classList.add("video-mode");
+        if (q.has("scene")) window.__goToScene(q.get("scene"));
+        // 場景模式下可用方向鍵手動預覽
+        document.addEventListener("keydown", function (e) {
+          if (!root.classList.contains("scene-mode")) return;
+          var now = parseInt(root.getAttribute("data-scene-now"), 10) || 0;
+          if (e.key === "ArrowRight") window.__goToScene(Math.min(count(), now + 1));
+          if (e.key === "ArrowLeft") window.__goToScene(Math.max(0, now - 1));
+        });
+      })();
+    </script>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- 全頁評論系統 — 預設內建、可手動移除                       -->
+    <!-- 完整 snippet 見 references/interaction-patterns.md       -->
+    <!-- § 全頁評論系統（page-wide commenting，預設內建）         -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <style>
+      .vt-comment-trigger {
+        position: fixed;
+        z-index: 9998;
+        background: var(--paper);
+        border: 1.5px solid var(--clay);
+        border-radius: 999px;
+        padding: 6px 12px;
+        font-size: 12px;
+        color: var(--clay);
+        font-family: var(--mono);
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(20, 20, 19, 0.12);
+        display: none;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.15s;
+      }
+      .vt-comment-trigger:hover {
+        background: var(--clay);
+        color: var(--paper);
+      }
+      .vt-comment-popup {
+        position: fixed;
+        z-index: 9999;
+        background: var(--paper);
+        border: 1.5px solid var(--g300);
+        border-radius: 12px;
+        box-shadow: 0 12px 32px rgba(20, 20, 19, 0.15);
+        padding: 14px 16px;
+        width: 340px;
+        display: none;
+      }
+      .vt-comment-popup .quote {
+        background: var(--g100);
+        border-left: 3px solid var(--clay);
+        padding: 8px 10px;
+        font-size: 12.5px;
+        color: var(--g700);
+        line-height: 1.45;
+        margin-bottom: 10px;
+        max-height: 80px;
+        overflow-y: auto;
+      }
+      .vt-comment-popup textarea {
+        width: 100%;
+        border: 1.5px solid var(--g300);
+        border-radius: 8px;
+        padding: 8px 10px;
+        font-size: 13px;
+        font-family: var(--sans);
+        resize: vertical;
+        min-height: 60px;
+        color: var(--slate);
+        box-sizing: border-box;
+      }
+      .vt-comment-popup textarea:focus {
+        outline: none;
+        border-color: var(--clay);
+      }
+      .vt-comment-popup .actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 10px;
+        font-size: 11.5px;
+      }
+      .vt-comment-popup .hint {
+        color: var(--g500);
+        font-family: var(--mono);
+      }
+      .vt-comment-popup button.send {
+        background: var(--clay);
+        color: var(--paper);
+        border: none;
+        border-radius: 8px;
+        padding: 6px 14px;
+        font-size: 12.5px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .vt-comment-popup button.send:hover {
+        background: var(--clay-d);
+      }
+      .vt-comment-popup button.cancel {
+        background: transparent;
+        border: 1px solid var(--g300);
+        color: var(--g500);
+        border-radius: 8px;
+        padding: 6px 12px;
+        font-size: 12.5px;
+        cursor: pointer;
+        margin-right: 8px;
+      }
+      mark.vt-comment-mark {
+        background: var(--oat);
+        padding: 0 2px;
+        border-radius: 2px;
+        cursor: pointer;
+      }
+      mark.vt-comment-mark:hover {
+        background: #d5c4a8;
+      }
+      .vt-comment-pill {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        z-index: 9990;
+        background: var(--paper);
+        border: 1.5px solid var(--clay);
+        border-radius: 999px;
+        padding: 8px 14px;
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--clay);
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(20, 20, 19, 0.1);
+        display: none;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.15s;
+      }
+      .vt-comment-pill.is-active {
+        display: inline-flex;
+      }
+      .vt-comment-pill:hover {
+        background: var(--clay);
+        color: var(--paper);
+      }
+      .vt-comment-pill strong {
+        font-weight: 600;
+      }
+      .vt-comment-list {
+        position: fixed;
+        right: 16px;
+        bottom: 60px;
+        width: 360px;
+        max-height: 60vh;
+        z-index: 9991;
+        background: var(--paper);
+        border: 1.5px solid var(--g300);
+        border-radius: 14px;
+        box-shadow: 0 12px 32px rgba(20, 20, 19, 0.15);
+        display: none;
+        flex-direction: column;
+      }
+      .vt-comment-list.is-open {
+        display: flex;
+      }
+      .vt-comment-list-header {
+        background: var(--paper);
+        border-bottom: 1.5px solid var(--g200);
+        padding: 12px 16px;
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--g500);
+        font-weight: 600;
+        border-radius: 14px 14px 0 0;
+      }
+      .vt-comment-list-items {
+        overflow-y: auto;
+        flex: 1;
+      }
+      .vt-comment-item {
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--g200);
+      }
+      .vt-comment-item:last-child {
+        border-bottom: none;
+      }
+      .vt-comment-item .item-quote {
+        font-size: 11.5px;
+        color: var(--g500);
+        font-style: italic;
+        border-left: 2px solid var(--oat);
+        padding-left: 8px;
+        line-height: 1.4;
+        margin-bottom: 6px;
+      }
+      .vt-comment-item .item-body {
+        font-size: 13px;
+        color: var(--slate);
+        line-height: 1.5;
+      }
+      .vt-comment-item .item-del {
+        font-size: 11px;
+        color: var(--g500);
+        background: none;
+        border: none;
+        cursor: pointer;
+        margin-top: 4px;
+        padding: 0;
+        font-family: inherit;
+      }
+      .vt-comment-item .item-del:hover {
+        color: var(--red);
+      }
+      .vt-comment-list-footer {
+        border-top: 1.5px solid var(--g200);
+        padding: 10px 16px;
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        border-radius: 0 0 14px 14px;
+        background: var(--g100);
+      }
+      .vt-comment-list-footer button {
+        background: transparent;
+        border: 1.5px solid var(--g300);
+        border-radius: 8px;
+        padding: 6px 12px;
+        font-size: 12px;
+        color: var(--g700);
+        cursor: pointer;
+        font-family: inherit;
+      }
+      .vt-comment-list-footer button:hover {
+        border-color: var(--slate);
+        color: var(--slate);
+      }
+      .vt-comment-list-footer button.copy {
+        background: var(--clay);
+        color: var(--paper);
+        border-color: var(--clay);
+      }
+      .vt-comment-list-footer button.copy:hover {
+        background: var(--clay-d);
+      }
+      body.vt-has-existing-export .vt-comment-list-footer button.copy {
+        display: none;
+      }
+    </style>
+    <button class="vt-comment-trigger" id="vt-comment-trigger">💬 評論</button>
+    <div class="vt-comment-popup" id="vt-comment-popup">
+      <div class="quote" id="vt-popup-quote"></div>
+      <textarea
+        id="vt-popup-textarea"
+        placeholder="對這段文字的評論 / 疑問 / 補充..."
+      ></textarea>
+      <div class="actions">
+        <span class="hint">⌘ + Enter 送出 · Esc 取消</span>
+        <div>
+          <button class="cancel" id="vt-popup-cancel">取消</button
+          ><button class="send" id="vt-popup-send">送出</button>
+        </div>
+      </div>
+    </div>
+    <button class="vt-comment-pill" id="vt-comment-pill">
+      💬 <strong id="vt-count">0</strong>
+    </button>
+    <div class="vt-comment-list" id="vt-comment-list">
+      <div class="vt-comment-list-header">— 我的評論</div>
+      <div class="vt-comment-list-items" id="vt-comment-list-items"></div>
+      <div class="vt-comment-list-footer">
+        <button id="vt-clear-all">全部清除</button>
+        <button class="copy" id="vt-copy-fallback">📋 複製評論</button>
+      </div>
+    </div>
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- 共用複製工具 — file:// 下瀏覽器停用 navigator.clipboard，   -->
+    <!-- 一定會落到 execCommand 備援；備援也可能失敗，必須誠實回報   -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <script>
+      // 三段式：clipboard API → execCommand 備援 → 都失敗回 false（不假報成功）
+      window.vtCopyText = async function (text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          try {
+            await navigator.clipboard.writeText(text);
+            return true;
+          } catch (err) {
+            // 落到 execCommand 備援
+          }
+        }
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.setAttribute("readonly", "");
+        ta.style.position = "fixed";
+        ta.style.top = "-9999px";
+        ta.style.left = "-9999px";
+        document.body.appendChild(ta);
+        try {
+          ta.select();
+          ta.setSelectionRange(0, ta.value.length);
+          return document.execCommand("copy") === true;
+        } catch (err) {
+          return false;
+        } finally {
+          ta.remove();
+        }
+      };
+
+      // 複製失敗時的出路：把文字放進可選取區域並全選，使用者按一次 Cmd+C 即可
+      // target 有給就用頁面既有的預覽區（wrap 為它的外層、會自動展開）；
+      // 沒有預覽區就建一個臨時可選取區（雙擊可關閉）。
+      window.vtSelectForManualCopy = function (text, target, wrap) {
+        let node = target;
+        if (node) {
+          node.textContent = text;
+          if (wrap) wrap.classList.remove("hidden");
+        } else {
+          node = document.getElementById("vt-manual-copy-box");
+          if (!node) {
+            node = document.createElement("pre");
+            node.id = "vt-manual-copy-box";
+            node.title = "雙擊關閉";
+            node.style.cssText =
+              "position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:10000;" +
+              "max-width:min(720px,92vw);max-height:40vh;overflow:auto;white-space:pre-wrap;" +
+              "background:#fff;color:#111;border:1.5px solid #999;border-radius:10px;" +
+              "padding:14px 16px;font-size:12.5px;line-height:1.6;" +
+              "box-shadow:0 12px 40px rgba(0,0,0,.28)";
+            node.addEventListener("dblclick", function () {
+              node.remove();
+            });
+            document.body.appendChild(node);
+          }
+          node.textContent = text;
+        }
+        node.scrollIntoView({ block: "nearest" });
+        const sel = window.getSelection();
+        if (sel) {
+          const range = document.createRange();
+          range.selectNodeContents(node);
+          sel.removeAllRanges();
+          sel.addRange(range);
+        }
+        return node;
+      };
+    </script>
+
+    <script>
+      (function () {
+        const S = "vt-comments-" + location.pathname,
+          L = 80;
+        let c = JSON.parse(localStorage.getItem(S) || "[]"),
+          sel = null;
+        const $ = (i) => document.getElementById(i),
+          tr = $("vt-comment-trigger"),
+          p = $("vt-comment-popup"),
+          pq = $("vt-popup-quote"),
+          pt = $("vt-popup-textarea"),
+          pi = $("vt-comment-pill"),
+          ce = $("vt-count"),
+          le = $("vt-comment-list"),
+          li = $("vt-comment-list-items");
+        window.vtCollectComments = function () {
+          if (!c.length) return "";
+          return (
+            "\n\n---\n\n" +
+            c
+              .map((x) => {
+                const q =
+                  x.quote.length > L ? x.quote.slice(0, L) + "…" : x.quote;
+                return `@評論「${q}」\n  → ${x.body}`;
+              })
+              .join("\n\n")
+          );
+        };
+        function hs(e) {
+          if (
+            e.target.closest(
+              ".vt-comment-popup,.vt-comment-trigger,.vt-comment-pill,.vt-comment-list,button,input,select,textarea",
+            )
+          )
+            return;
+          setTimeout(() => {
+            const s = getSelection(),
+              t = s.toString().trim();
+            if (!t || t.length < 2) {
+              tr.style.display = "none";
+              return;
+            }
+            const r = s.getRangeAt(0),
+              b = r.getBoundingClientRect();
+            sel = { text: t, range: r.cloneRange() };
+            tr.style.display = "inline-flex";
+            tr.style.top = Math.max(8, b.top - 38) + "px";
+            tr.style.left = Math.max(8, b.left + b.width / 2 - 40) + "px";
+          }, 10);
+        }
+        document.addEventListener("mouseup", hs);
+        document.addEventListener("touchend", hs);
+        tr.addEventListener("click", op);
+        function op() {
+          if (!sel) return;
+          const q = sel.text.length > L ? sel.text.slice(0, L) + "…" : sel.text;
+          pq.textContent = q;
+          pt.value = "";
+          const t = tr.getBoundingClientRect();
+          let l = t.left;
+          if (l + 340 > innerWidth - 16) l = innerWidth - 356;
+          let to = t.bottom + 6;
+          if (to + 220 > innerHeight) to = t.top - 230;
+          p.style.left = Math.max(8, l) + "px";
+          p.style.top = Math.max(8, to) + "px";
+          tr.style.display = "none";
+          p.style.display = "block";
+          setTimeout(() => pt.focus(), 50);
+        }
+        $("vt-popup-cancel").addEventListener("click", cp);
+        $("vt-popup-send").addEventListener("click", sc);
+        pt.addEventListener("keydown", (e) => {
+          if (e.isComposing || e.keyCode === 229) return;
+          if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+            e.preventDefault();
+            e.stopPropagation();
+            sc();
+          }
+          if (e.key === "Escape") cp();
+        });
+        function cp() {
+          p.style.display = "none";
+          sel = null;
+        }
+        function sc() {
+          const b = pt.value.trim();
+          if (!b || !sel) return cp();
+          const id = "c-" + Date.now(),
+            q = sel.text;
+          try {
+            const m = document.createElement("mark");
+            m.className = "vt-comment-mark";
+            m.dataset.commentId = id;
+            sel.range.surroundContents(m);
+          } catch (e) {}
+          c.push({ id, quote: q, body: b, ts: Date.now() });
+          ps();
+          rn();
+          cp();
+          getSelection().removeAllRanges();
+        }
+        function ps() {
+          localStorage.setItem(S, JSON.stringify(c));
+        }
+        function rn() {
+          ce.textContent = c.length;
+          pi.classList.toggle("is-active", c.length > 0);
+          if (!c.length) le.classList.remove("is-open");
+          li.innerHTML = c
+            .map((x) => {
+              const q =
+                x.quote.length > 60 ? x.quote.slice(0, 60) + "…" : x.quote;
+              return `<div class="vt-comment-item" data-id="${x.id}"><div class="item-quote">「${eh(q)}」</div><div class="item-body">${eh(x.body)}</div><button class="item-del" data-del="${x.id}">刪除</button></div>`;
+            })
+            .join("");
+          li.querySelectorAll("[data-del]").forEach((b) =>
+            b.addEventListener("click", () => dc(b.dataset.del)),
+          );
+        }
+        function dc(id) {
+          c = c.filter((x) => x.id !== id);
+          document
+            .querySelectorAll(`mark.vt-comment-mark[data-comment-id="${id}"]`)
+            .forEach((m) => {
+              const pr = m.parentNode;
+              while (m.firstChild) pr.insertBefore(m.firstChild, m);
+              pr.removeChild(m);
+              pr.normalize();
+            });
+          ps();
+          rn();
+        }
+        function eh(s) {
+          return String(s).replace(
+            /[&<>"']/g,
+            (ch) =>
+              ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#39;",
+              })[ch],
+          );
+        }
+        pi.addEventListener("click", () => le.classList.toggle("is-open"));
+        $("vt-clear-all").addEventListener("click", () => {
+          if (!c.length) return;
+          if (!confirm("確定清除全部 " + c.length + " 條評論？")) return;
+          document.querySelectorAll("mark.vt-comment-mark").forEach((m) => {
+            const pr = m.parentNode;
+            while (m.firstChild) pr.insertBefore(m.firstChild, m);
+            pr.removeChild(m);
+            pr.normalize();
+          });
+          c = [];
+          ps();
+          rn();
+        });
+        $("vt-copy-fallback").addEventListener("click", async (e) => {
+          if (!c.length) return;
+          const t = window.vtCollectComments().replace(/^\n\n---\n\n/, ""),
+            b = e.currentTarget,
+            o = b.textContent;
+          const ok = await window.vtCopyText(t);
+          if (ok) {
+            b.textContent = "✅ 已複製";
+          } else {
+            // 複製不到就不假報成功：把評論放進臨時區域並全選
+            window.vtSelectForManualCopy(t);
+            b.textContent = "已選取 → 請按 Cmd+C";
+          }
+          setTimeout(() => (b.textContent = o), ok ? 2000 : 6000);
+        });
+        setTimeout(() => {
+          if (typeof window.vtBuildDecisionExport === "function")
+            document.body.classList.add("vt-has-existing-export");
+        }, 100);
+        document.addEventListener("click", (e) => {
+          if (
+            p.style.display === "block" &&
+            !e.target.closest(".vt-comment-popup,.vt-comment-trigger")
+          )
+            cp();
+        });
+        rn();
+      })();
+    </script>
+  
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- Session 識別 — 多視窗並行時分辨這份是哪個 session 產的     -->
+    <!-- 產出時把 scripts/session-label.sh 的結果填進下面兩個值      -->
+    <!-- 留空 = 整段停用（範本原檔即此狀態）                        -->
+    <!-- 完整說明見 references/session-identity.md                 -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <script>
+      window.VT_SESSION = { label: "", id: "", project: "" };
+    </script>
+    <style>
+      .vt-session-badge {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        padding: 5px 16px;
+        background: var(--vt-session-color, #666);
+        color: #fff;
+        font-family: var(--mono, ui-monospace, monospace);
+        font-size: 11.5px;
+        letter-spacing: 0.06em;
+      }
+      .vt-session-badge .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #fff;
+        opacity: 0.85;
+        flex-shrink: 0;
+      }
+      .vt-session-badge .lb {
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+      .vt-session-badge .id {
+        margin-left: auto;
+        opacity: 0.75;
+      }
+    </style>
+    <script>
+      (function () {
+        const s = window.VT_SESSION || {};
+        if (!s.label) return;
+        const seed = s.id || s.label;
+        let hue = 7;
+        for (const c of seed) hue = (hue * 31 + c.charCodeAt(0)) % 360;
+        const col = `hsl(${hue} 58% 42%)`;
+        document.title = `${s.label} · ${document.title}`;
+        try {
+          const cv = document.createElement("canvas");
+          cv.width = cv.height = 64;
+          const g = cv.getContext("2d");
+          g.fillStyle = col;
+          if (g.roundRect) {
+            g.beginPath();
+            g.roundRect(2, 2, 60, 60, 14);
+            g.fill();
+          } else {
+            g.fillRect(2, 2, 60, 60);
+          }
+          g.fillStyle = "#fff";
+          g.font = '700 38px ui-sans-serif, system-ui, "PingFang TC"';
+          g.textAlign = "center";
+          g.textBaseline = "middle";
+          const ch = (s.label.match(/[A-Za-z0-9\u4e00-\u9fff]/) || ["?"])[0];
+          g.fillText(ch.toUpperCase(), 32, 36);
+          const link = document.createElement("link");
+          link.rel = "icon";
+          link.href = cv.toDataURL();
+          document.head.appendChild(link);
+        } catch (e) {}
+        const b = document.createElement("div");
+        b.className = "vt-session-badge";
+        b.style.setProperty("--vt-session-color", col);
+        b.innerHTML =
+          '<span class="dot"></span><span class="lb"></span><span class="id"></span>';
+        b.querySelector(".lb").textContent = s.label;
+        b.querySelector(".id").textContent = s.id || "";
+        const host = document.querySelector("header") || document.body;
+        host.insertBefore(b, host.firstChild);
+      })();
+    </script>
+  </body>
+</html>

@@ -91,6 +91,10 @@ def inline_scripts(h):
             continue
         if not body.strip():
             continue
+        # 資料區塊（application/json 等）不是腳本：#video-scenes、#vt-tweaks 拿去 node --check 會誤報
+        t = re.search(r'type\s*=\s*["\']([^"\']+)["\']', attrs, re.I)
+        if t and t.group(1).lower() not in ("text/javascript", "application/javascript", "module"):
+            continue
         is_mod = bool(re.search(r'type\s*=\s*["\']module["\']', attrs, re.I))
         out.append((i, body, is_mod))
     return out
@@ -232,6 +236,25 @@ def check_runtime(path):
                if "NO_PLAYWRIGHT" in r.stderr
                else "playwright 自帶 chromium 與系統 Chrome 都起不來")
         return "skip", [why]
+    lines = [ln for ln in r.stdout.splitlines() if ln.strip()]
+    return ("bad" if r.returncode == 1 else "ok"), lines
+
+
+def check_onepage(path):
+    """一頁版在 1920×1080 放不放得下。回傳 (狀態, 輸出行)。
+
+    存在理由：一頁版的承諾是「不捲動、一眼看完」；字型、換行、圖的縮放都會讓它悄悄多出一截，
+    只有渲染出來量 scrollHeight 才算數。
+    """
+    script = os.path.join(os.path.dirname(os.path.abspath(__file__)), "onepage-check.mjs")
+    if not shutil.which("node") or not os.path.exists(script):
+        return "skip", ["找不到 node 或 onepage-check.mjs"]
+    try:
+        r = subprocess.run(["node", script, os.path.abspath(path)], capture_output=True, text=True, timeout=120)
+    except subprocess.TimeoutExpired:
+        return "skip", ["執行逾時"]
+    if r.returncode == 2 or "NO_PLAYWRIGHT" in r.stderr or "NO_BROWSER" in r.stderr:
+        return "skip", ["找不到 playwright 或瀏覽器"]
     lines = [ln for ln in r.stdout.splitlines() if ln.strip()]
     return ("bad" if r.returncode == 1 else "ok"), lines
 
@@ -583,6 +606,55 @@ def main(path):
             report(BAD, "偵測到跑版", "詳如下")
             for ln in lines:
                 print("     " + ln)
+
+    # ── 一頁版 ───────────────────────────────────
+    # 宣告 data-layout="onepage" 的頁要在 1920×1080 一個畫面放完（references/onepage.md）
+    if re.search(r'<html[^>]*\bdata-layout="onepage"', h):
+        head("一頁版（1920×1080 不捲動）")
+        if "--no-layout" in sys.argv:
+            report(SKIP, "一頁檢查", "--no-layout 不量")
+        else:
+            status, lines = check_onepage(path)
+            if status == "skip":
+                report(UNVERIFIED, "一頁檢查", "；".join(lines) + "——沒跑到不等於通過")
+            else:
+                report(OK if status == "ok" else BAD,
+                       "一個畫面放得下" if status == "ok" else "一頁版放不下或超量",
+                       "看下方截圖" if status == "ok" else "砍字、縮圖或拆成兩頁")
+                for ln in lines:
+                    print("     " + ln)
+
+    # ── 影片場景 ─────────────────────────────────
+    # 有 data-scene 或 #video-scenes 的頁可交給 render-video.mjs 出片（references/video-explainer.md）
+    scene_json = re.search(r'<script[^>]*\bid="video-scenes"[^>]*>(.*?)</script>', h, re.S)
+    scene_marks = {int(x) for x in re.findall(r'\bdata-scene="(\d+)"', h_markup)}
+    if scene_json or scene_marks:
+        head("影片場景")
+        scenes = []
+        if scene_json:
+            try:
+                scenes = json.loads(scene_json.group(1)).get("scenes") or []
+            except ValueError as e:
+                report(BAD, "#video-scenes 不是合法 JSON", str(e)[:80])
+        n = max([len(scenes)] + list(scene_marks or [0]))
+        report(OK if n <= 8 else BAD, f"{n} 幕", "" if n <= 8 else "上限 8 幕：一幕一個想法，多了拆成兩支片")
+        report(OK if "__goToScene" in full else BAD, "有 __goToScene(n)",
+               "" if "__goToScene" in full else "複製 assets/onepage-template.html 的場景引擎")
+        if scenes:
+            empty = [s.get("scene") for s in scenes if not (s.get("narration") or "").strip()]
+            report(OK if not empty else BAD, "每幕都有旁白", "" if not empty else f"空白：第 {empty} 幕")
+            # 中文約每秒 4.5 字、英文約每秒 15 字元；只是估計，實際長度由 render-video 量
+            long_ = []
+            for s in scenes:
+                t = s.get("narration") or ""
+                cjk = len(re.findall(r"[㐀-鿿]", t))
+                est = cjk / 4.5 + (len(t) - cjk) / 15
+                if est > 15:
+                    long_.append(f"第 {s.get('scene')} 幕約 {est:.0f} 秒")
+            report(OK if not long_ else WARN, "每幕旁白 ≤ 15 秒（估）", "、".join(long_))
+            orphan = sorted({int(s.get("scene") or 0) for s in scenes} - scene_marks)
+            report(OK if not orphan else WARN, "每幕都有畫面元素",
+                   "" if not orphan else f"第 {orphan} 幕沒有 data-scene 元素（畫面不會變）")
 
     # 看標記不看腳本：蓋章注入的風格設定腳本字串裡有 <svg，不該讓每一頁都跑 SVG 檢查
     if "<svg" in h_markup.lower():
