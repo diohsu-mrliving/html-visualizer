@@ -14,8 +14,8 @@
  */
 (function () {
   var root = document.documentElement;
-  var me = document.currentScript;
-  var tool = (me && me.getAttribute("data-profile-tool")) || "profile.py";
+  // 存檔指令只寫 skill 內的相對路徑：產出頁會轉寄給別人，不能帶本機路徑；收到指令的 AI 知道 skill 在哪
+  var tool = "scripts/profile.py";
   // 介面語言：讀者切換過就記在瀏覽器、之後的頁沿用；沒切過跟頁面的 lang 走。
   // 沙盒 iframe（沒開 allow-same-origin）一碰 localStorage 就丟錯，所以包 try
   var lang = null;
@@ -45,7 +45,7 @@
       head: "## 設定檔變更\n給 AI：使用者要把這頁的顯示設定存成預設（",
       pair: "：",
       join: "、",
-      tail: "）。請執行下面這行寫入 html-visualizer 設定檔，完成後回報前後差異；使用者不用自己跑。\n",
+      tail: "）。請在 html-visualizer skill 的目錄下執行下面這行寫入設定檔，完成後回報前後差異；使用者不用自己跑。\n",
     },
     en: {
       name: "Style settings",
@@ -71,7 +71,7 @@
       head: "## Profile changes\nFor the AI: the user wants to save this page's display settings as their default (",
       pair: ": ",
       join: ", ",
-      tail: "). Run the line below to write them to the html-visualizer profile, then report the before and after values. The user doesn't need to run it.\n",
+      tail: "). Run the line below from the html-visualizer skill directory to write them to the profile, then report the before and after values. The user doesn't need to run it.\n",
     },
   };
   var L = LANG[lang];
@@ -324,10 +324,9 @@
         })
         .join(L.join) +
       L.tail +
-      // 雙引號：路徑以 $HOME 開頭，單引號裡不會展開
-      'python3 "' +
+      "python3 " +
       tool +
-      '" set ' +
+      " set " +
       ch
         .map(function (t) {
           return t.profile + "=" + profileValue(t, state[t.id]);

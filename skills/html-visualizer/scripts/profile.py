@@ -48,7 +48,9 @@ SCHEMA = {
     "tokens.layout.maxWidth": int,
     "checks.noEmoji": bool,
     "checkWidths": list,
+    "tokens.theme": str,  # mrl（預設，現場讀居家先生 CI）/ default（原本樣式）；見 brand.py
 }
+THEMES = ("mrl", "default")
 for k in FONT_VARS:
     SCHEMA[f"tokens.type.{k}"] = str
 for k in COLOR_VARS:
@@ -109,6 +111,8 @@ def _coerce(key, raw):
         if raw.lower() in ("false", "0", "no", "off"):
             return False
         raise ValueError(f"{key} 要 true/false，收到 {raw}")
+    if key == "tokens.theme" and raw not in THEMES:
+        raise ValueError(f"{key} 只能是 {'/'.join(THEMES)}，收到 {raw}")
     if key == "tokens.layout.density" and raw not in DENSITY:
         raise ValueError(f"{key} 只能是 {'/'.join(DENSITY)}，收到 {raw}")
     if key == "tokens.type.scale":
@@ -163,6 +167,7 @@ def cmd_show(args):
     print(f"設定檔：{PROFILE_PATH}" + ("" if exists else "（不存在，全部沿用範本原值）"))
     decls = css_vars(profile)
     print("蓋章會寫入的變數：" + (" ".join(decls) if decls else "（無，沿用範本原值）"))
+    print(f"品牌主題：{_get(profile, 'tokens.theme') or '未設定（預設 mrl，brand.py show 看這次會不會套上）'}")
     print(f"版面檢查寬度：{profile.get('checkWidths') or '未設定（用 390／768／1440）'}")
     print(f"不用 emoji：{'是' if (profile.get('checks') or {}).get('noEmoji') else '否'}")
     print(f"文字規則：{len(profile.get('rules') or [])} 條（show --rules 看全文）")

@@ -9,8 +9,11 @@
    自己寫的；只改範本，拉滑桿時會大小字混雜。
 2. 設定檔變數：<style id="vt-profile"> 只寫使用者選過的 :root 變數。
 3. 調整面板：缺就注入 assets/tweaks.{css,js}，舊版整段替換成現行版。
+0. 品牌主題（最先做）：預設 mrl＝現場找居家先生 CI skill、讀出色票與 Logo 套上（scripts/brand.py）；
+   找不到或解析失敗就整頁用原本樣式，並在 <head> 留 meta 記原因。插槽 <!-- vt-brand:header|footer|mark -->
+   有就填，一般報告頁沒有 header 插槽時在 <body> 後補一條品牌頁首。
 
-用法（通常由 verify.py 呼叫；手動除錯可直接跑）：python3 stamp.py <file.html>
+用法（通常由 verify.py 呼叫；手動除錯可直接跑）：python3 stamp.py <file.html> [--theme=mrl|default]
 """
 import hashlib
 import json
@@ -25,6 +28,9 @@ import importlib.util as _ilu  # noqa: E402
 _spec = _ilu.spec_from_file_location("vt_profile", os.path.join(HERE, "profile.py"))
 profile_mod = _ilu.module_from_spec(_spec)
 _spec.loader.exec_module(profile_mod)
+_bspec = _ilu.spec_from_file_location("vt_brand", os.path.join(HERE, "brand.py"))
+brand_mod = _ilu.module_from_spec(_bspec)
+_bspec.loader.exec_module(brand_mod)
 
 ASSETS = os.path.join(os.path.dirname(HERE), "assets")
 
@@ -225,6 +231,80 @@ def _insert(html, block, prefer_head):
     return html[:idx] + block + "\n" + html[idx:]
 
 
+# ── 0. 品牌主題 ─────────────────────────────────────────────
+_THEME_BLOCK = re.compile(r"<!-- vt-theme:begin[^>]*-->.*?<!-- vt-theme:end -->\n", re.S)
+_SLOT = re.compile(r"(<!-- vt-brand:(header|footer|mark) -->).*?(<!-- /vt-brand:\2 -->)", re.S)
+_AUTO = re.compile(r"<!-- vt-brand:auto -->.*?<!-- /vt-brand:auto -->\n?", re.S)
+_HEADER_SLOT = re.compile(re.escape("<!-- vt-brand:header -->"))
+_FOOTER_SLOT = re.compile(re.escape("<!-- vt-brand:footer -->"))
+_BODY_OPEN = re.compile(r"<body\b[^>]*>", re.I)
+_LABEL = re.compile(r"<meta\s+name=[\"']vt-brand-label[\"']\s+content=[\"']([^\"']*)[\"']", re.I)
+
+
+_HEADER_OPEN = re.compile(r"<header\b([^>]*)>", re.I)
+# 品牌插槽／自動頁首／主題區塊的替換只做在「真正的標記」裡：腳本與 textarea 的內容是文字，
+# 裡面寫著 <!-- vt-brand:header --> 的（JS 組頁面的字串、教學用的 textarea 範例）不能被填進 Logo。
+# 不沿用 _OPAQUE 整組：它把 HTML 註解也當不透明，插槽標記本身就是註解，會連真插槽一起跳過
+_RAW_TEXT = re.compile(r"(<script\b[^>]*>.*?</script\s*>|<textarea\b[^>]*>.*?</textarea\s*>)", re.I | re.S)
+
+
+def _sub_markup(rx, repl, html):
+    """rx.sub，但跳過 script／textarea 內容。"""
+    parts = _RAW_TEXT.split(html)
+    for i in range(0, len(parts), 2):
+        parts[i] = rx.sub(repl, parts[i])
+    return "".join(parts)
+
+
+def _search_markup(rx, html):
+    for i, part in enumerate(_RAW_TEXT.split(html)):
+        if i % 2 == 0:
+            m = rx.search(part)
+            if m:
+                return m
+    return None
+
+
+def _header_spot(html, free):
+    """自動品牌頁首插在哪：第一個 <header> 裡最前面——session 色帶執行期會插到 header 的第一個子元素，
+    所以品牌列一定落在色帶「下方」。那個 header 是固定／黏頂的（marathon 的頂部列）就改插在它後面，
+    不然 Logo 會一直佔著畫面。沒有 header 才退到 <body> 後面（色帶那時插在 body 最前面，仍在上方）。"""
+    for m in _HEADER_OPEN.finditer(html):
+        if not free(m.start()):
+            continue
+        if re.search(r"sticky|fixed", m.group(1), re.I):
+            end = html.find("</header>", m.end())
+            return end + len("</header>") if end >= 0 else None
+        return m.end()
+    m = _BODY_OPEN.search(html)
+    return m.end() if m and free(m.start()) else None
+
+
+def stamp_theme(html, res):
+    """全有或全無：mrl 時 head 區塊＋所有插槽一起填；default 時一起清空，只留 meta 記原因。"""
+    html = _sub_markup(_THEME_BLOCK, "", html)
+    html = _sub_markup(_AUTO, "", html)
+    lab = _search_markup(_LABEL, html)
+    fill = brand_mod.slots(res, lab.group(1) if lab else "")
+    html = _sub_markup(_SLOT, lambda m: m.group(1) + fill[m.group(2)] + m.group(3), html)
+    block = f"<!-- vt-theme:begin {res['theme']} -->\n{brand_mod.theme_head(res)}\n<!-- vt-theme:end -->"
+    html = _insert(html, block, prefer_head=True)
+    # 捲動式頁面（沒有 data-layout）漏了插槽：自動補，整頁才不會少了品牌識別
+    if res["theme"] == "mrl" and not re.search(r"<html[^>]*\bdata-layout=", html):
+        spans = [(a.start(), a.end()) for a in _OPAQUE.finditer(html)]
+        free = lambda i: not any(a <= i < b for a, b in spans)  # noqa: E731
+        if not _search_markup(_HEADER_SLOT, html):
+            auto = f'<!-- vt-brand:auto --><div class="vt-brand-auto">{fill["header"]}</div><!-- /vt-brand:auto -->\n'
+            at = _header_spot(html, free)
+            if at is not None:
+                html = html[:at] + auto + html[at:]
+        if not _search_markup(_FOOTER_SLOT, html):
+            auto = (f'<!-- vt-brand:auto --><div class="vt-brand-auto vt-brand-footwrap">{fill["footer"]}</div>'
+                    "<!-- /vt-brand:auto -->")
+            html = _insert(html, auto, prefer_head=False)
+    return html
+
+
 # ── 2. 設定檔變數 ───────────────────────────────────────────
 _PROFILE_BLOCK = re.compile(r"<style id=\"vt-profile\"[^>]*>.*?</style>\n", re.S)
 
@@ -257,14 +337,12 @@ def tweaks_block():
     if "</script" in js.lower() or "</style" in css.lower():
         raise ValueError("tweaks 資產裡出現 script／style 的結尾標籤字樣，內嵌會被切斷")
     ver = hashlib.sha1((css + js).encode()).hexdigest()[:10]
-    tool = os.path.join(HERE, "profile.py")
-    home = os.path.expanduser("~")
-    if tool.startswith(home + os.sep):
-        tool = "$HOME" + tool[len(home):]
+    # 不寫 profile.py 的位置：產出頁會被轉寄、打包給別人，不能帶本機路徑（家目錄、使用者名稱、工作區）。
+    # 「存成我的預設」的指令改用 skill 內的相對路徑 scripts/profile.py，由收到指令的 AI 在 skill 目錄執行
     return (
         f"<!-- vt-tweaks:begin v={ver} -->\n"
         f"<style id=\"vt-tweaks-css\">\n{css}\n</style>\n"
-        f"<script id=\"vt-tweaks-js\" data-profile-tool=\"{tool}\">\n{js}\n</script>\n"
+        f"<script id=\"vt-tweaks-js\">\n{js}\n</script>\n"
         f"<!-- vt-tweaks:end -->"
     ), ver
 
@@ -296,7 +374,37 @@ _CALC = re.compile(r"calc\((-?[\d.]+(?:px|rem)|(?:clamp|min|max)\([^()]*\)) \* v
 def unstamp(html):
     for rx in (_TWEAKS_BLOCK, _PROFILE_BLOCK, _TW_BLOCK):
         html = rx.sub("", html)
+    for rx in (_THEME_BLOCK, _AUTO):
+        html = _sub_markup(rx, "", html)
+    html = _sub_markup(_SLOT, lambda m: m.group(1) + m.group(3), html)  # Logo 內嵌圖很長，會讓按篇幅算的檢查誤判
     return _CALC.sub(r"\1", html)
+
+
+# 蓋章注入的所有區塊（給 verify 的「不含本機路徑」檢查用）：主題、品牌插槽、自動頁首頁尾、設定檔變數、
+# Tailwind 覆寫、調整面板。只回傳這些區塊，不含作者正文——正文可能本來就在談路徑（例如安裝教學），不該誤判
+_REGIONS = (("主題標記", _THEME_BLOCK), ("品牌插槽", _SLOT), ("自動品牌頁首／頁尾", _AUTO),
+            ("設定檔變數", _PROFILE_BLOCK), ("Tailwind 覆寫", _TW_BLOCK), ("調整面板", _TWEAKS_BLOCK))
+_DATA_URI = re.compile(r"data:[\w/+.-]+;base64,[A-Za-z0-9+/=]+")
+# 本機路徑的樣子：macOS／Linux 家目錄、$HOME／~ 開頭、Windows 使用者目錄、Cowork 的 session 資料夾
+LOCAL_PATH = re.compile(r"/Users/|/home/[^/\s]+/|\$HOME\b|\$\{HOME\}|(?<![\w.])~/|[A-Za-z]:\\Users\\|local-agent-mode-sessions")
+
+
+def stamped_regions(html):
+    """[(區塊名, 內容)]。內嵌圖（data: URI）先去掉：base64 字元裡可能剛好拼出 /Users 之類的字樣。"""
+    out = []
+    for name, rx in _REGIONS:
+        for m in rx.finditer(html):
+            out.append((name, _DATA_URI.sub("data:…", m.group(0))))
+    return out
+
+
+def local_path_leaks(html):
+    """蓋章區塊裡出現的本機路徑片段 → [(區塊名, 片段)]。"""
+    leaks = []
+    for name, text in stamped_regions(html):
+        for m in LOCAL_PATH.finditer(text):
+            leaks.append((name, text[max(0, m.start() - 20): m.end() + 30].replace("\n", " ")))
+    return leaks
 
 
 def stamp_tailwind(html):
@@ -321,26 +429,33 @@ def stamp_tailwind(html):
     return _insert(html, '<style id="vt-tw-scale">' + " ".join(rules) + "</style>", prefer_head=True), len(used) + len(arb)
 
 
-def stamp_page(html, profile=None):
-    """回傳 (新 html, 報告 dict)。先蓋面板與設定檔、最後正規化（面板自己的樣式已是 calc，不會被重轉）。"""
+def stamp_page(html, profile=None, theme=None):
+    """回傳 (新 html, 報告 dict)。先蓋面板與設定檔、最後正規化（面板自己的樣式已是 calc，不會被重轉）。
+    theme：指令參數 --theme 的值（None＝照頁面／環境變數／設定檔／預設 mrl 決定）。"""
     if profile is None:
         profile, _ = profile_mod.load()
-    # 順序有意義：設定檔 → Tailwind 覆寫 → 面板。沒有 </head>、<body 的頁三段都放檔尾，
-    # 面板腳本執行時要讀得到前面的設定檔樣式（順序反了面板會把 150% 顯示成 100%）
+    # 順序有意義：主題 → 設定檔 → Tailwind 覆寫 → 面板。主題排在設定檔前面，使用者明確選過的值才蓋得過 CI。
+    # 沒有 </head>、<body 的頁全部放檔尾，面板腳本執行時要讀得到前面的設定檔樣式（順序反了面板會把 150% 顯示成 100%）
+    res = brand_mod.resolve(cli=theme, html=html, profile=profile)
+    html = stamp_theme(html, res)
     html, h = stamp_profile(html, profile)
     html, tw = stamp_tailwind(html)
     html, ver = stamp_tweaks(html)
     html, n = normalize_fonts(html)
-    return html, {"converted": n, "tailwind": tw, "profile_hash": h, "tweaks_ver": ver}
+    return html, {"converted": n, "tailwind": tw, "profile_hash": h, "tweaks_ver": ver,
+                  "theme": res["theme"], "theme_msg": brand_mod.message(res), "theme_ok": res["ok"]}
 
 
 def main(argv):
     if not argv:
         print(__doc__.strip())
         return 64
-    path = argv[0]
+    files = [a for a in argv if not a.startswith("--")]
+    theme = next((a.split("=", 1)[1] for a in argv if a.startswith("--theme=")), None)
+    path = files[0]
     src = open(path, encoding="utf-8").read()
-    out, rep = stamp_page(src)
+    out, rep = stamp_page(src, theme=theme)
+    print(rep["theme_msg"])
     if out != src:
         with open(path, "w", encoding="utf-8") as f:
             f.write(out)

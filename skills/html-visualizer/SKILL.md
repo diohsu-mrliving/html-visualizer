@@ -29,9 +29,19 @@ description: 把長文件、報告、規格、決策、架構、教學、儀表�
 
 ⭐ **頁面文字寫法（每一階都適用）**：頁面上給人讀的字照「**八成 ASD-STE100**」寫——短句（≤ 25 字）、一句一事、主動語態、同一個東西全頁只用一個名字、術語第一次出現就用白話定義、數字取代形容詞。旁白更嚴：每句 ≤ 20 字、每幕 ≤ 15 秒。濃縮規則與前後對照見 `references/writing-ste.md`。
 
-## 預設視覺風格：Anthropic / Claude 官方品牌風
+## 預設視覺風格：居家先生 CI（mrl），找不到就退回 Anthropic 風
 
-預設用 **Anthropic 風格**（ivory 米白底 + clay 赤陶 accent + serif 標題 + 換字重強調 + warm gray）— editorial / book / magazine 質感、跟 Claude 官方品牌一致。
+⭐ **預設主題是 mrl**：蓋章時（`verify.py` 自動做）**現場**去找居家先生 CI skill（`mr-living-presentation`），讀出色票、字型、版本與 Logo，換掉下面 Anthropic 風的變數值（變數名不變，元件照用）。規則不寫死在本 skill，CI 升版會自動跟上。
+
+- **找不到或解析失敗 → 整頁用 Anthropic 原生樣式**，`verify.py` 印一行「沒找到居家先生 CI，改用原本樣式：原因…」。不會半套。
+- **關掉**（擇一）：`verify.py <file> --theme=default`／頁面 `<html data-vt-theme="default">`／環境變數 `HTML_VISUALIZER_THEME=default`／`profile.py set tokens.theme=default`。
+- **寫 HTML 時**：照常用範本與 token，**不要手抄 CI 色碼**；三份範本的 `<!-- vt-brand:… -->` 插槽保留（蓋章時填 Logo）。要右上小標就加 `<meta name="vt-brand-label" content="章節 ｜ 段落">`。SVG 圖的顏色寫 `style="fill: var(--clay)"`，不要寫 `fill="#d97757"`，換主題時才會跟著變。
+- **促銷紅只能用在 class 含 `promo` 的元素**，`verify.py` 會擋。灰褐 `--greige` 只當粗體小標。
+- 流程與限制細節見 `references/color-and-typography.md` § 品牌主題（mrl）。
+
+### 退回時的原生樣式：Anthropic / Claude 官方品牌風
+
+原生用 **Anthropic 風格**（ivory 米白底 + clay 赤陶 accent + serif 標題 + 換字重強調 + warm gray）— editorial / book / magazine 質感、跟 Claude 官方品牌一致。
 
 完整 design tokens 見 `references/color-and-typography.md`、Anthropic-signature 元件見 `references/component-library.md` § 首段。Reference 範本見 `references/examples/anthropic-gallery/index.html`。
 
@@ -101,6 +111,7 @@ description: 把長文件、報告、規格、決策、架構、教學、儀表�
 
 ### Step 1 思考階段（用 markdown）
 
+0. ⭐ **看這次會套哪個主題**：`python3 <本 skill 目錄>/scripts/brand.py show`（一行說明：套居家先生 CI 哪一版、來源在哪；或為什麼退回原生）。只是預覽，真正套用在 Step 3 蓋章
 0. ⭐ **讀使用者的設定檔**：`python3 <本 skill 目錄>/scripts/profile.py show --rules`，印出來的文字規則當成這一頁的生成規則（偏好以設定檔為準；跟本 skill 的「規範」衝突時以本 skill 為準——規範＝相反做法本身就是缺陷，例如中文不用斜體）。字型、配色、字級、寬度這些數值**不用抄**，Step 3 的自檢會蓋章套用。沒有設定檔就全部沿用範本原值
 1. **理解需求**：呈現什麼資訊、給誰看、為了什麼決策
 2. **Read 對應範本 README**（marathon-decision-sheet 的話、必先讀）
@@ -291,7 +302,7 @@ description: 把長文件、報告、規格、決策、架構、教學、儀表�
 
 `set` 只接受已知的鍵，打錯字會被拒絕、不會默默寫進去。可用的鍵見 `profile.py set` 的錯誤訊息或檔頭說明。
 
-頁面上「設定檔變更」段裡的 `profile.py` 路徑是產頁當時 skill 的位置；路徑不存在時（例如 plugin 升版換了快取目錄），改用本 skill 目錄下的 `scripts/profile.py`，參數照抄。
+頁面上「設定檔變更」段裡寫的是相對路徑 `python3 scripts/profile.py set …`（產出頁不帶任何本機路徑，轉寄給別人也不洩漏家目錄）：在本 skill 目錄下執行，或把 `scripts/` 換成本 skill 目錄的實際路徑，參數照抄。舊頁面若還寫著 `$HOME/…/profile.py` 這類絕對路徑，一樣改用本 skill 目錄下的 `scripts/profile.py`。
 
 ---
 

@@ -1,5 +1,7 @@
 # 配色 + 字體 token（Anthropic / Claude 官方品牌風）
 
+> ⭐ 預設會在蓋章時套「居家先生 CI」（mrl 主題）：下面這組 Anthropic token 是**變數名的標準**與**找不到 CI 時的退回樣式**。流程見 § 品牌主題（mrl，預設）。
+
 每個 HTML 起手式都複製這段 CSS、不要自創顏色 / 字體。風格參考 Anthropic 官方品牌（ivory + clay + serif/sans/mono 三字體）— editorial / book / magazine 質感。
 
 > 風格樣張見 `examples/anthropic-gallery/index.html`（原創 markup，示範這套 token 排出來的質感）。
@@ -48,6 +50,101 @@
   --accent-strong:var(--clay-d);
 }
 ```
+
+## 品牌主題（mrl，預設）
+
+本 skill 預設套「居家先生 CI」。**CI 規則不存在本 skill 裡**：每次 `verify.py` 蓋章時，`scripts/brand.py` 現場去找 `mr-living-presentation` skill、讀它的 `SKILL.md`（色票、字型、版本、Logo 路徑、Logo 留白）與 `references/visual-tokens.md`（色階表），轉成下表的變數值。
+
+```text
+verify.py 蓋章
+   │
+   ├─ 決定主題：--theme > <html data-vt-theme> > HTML_VISUALIZER_THEME > 設定檔 tokens.theme > 預設 mrl
+   │
+   ├─ 找 skill：HTML_VISUALIZER_BRAND_DIR → ~/.claude/skills → ~/.agents/skills
+   │            → ~/.claude/plugins（cache／marketplaces）→ Claude 桌面版 local-agent-mode-sessions/**（取最新）
+   │
+   ├─ 解析：必要項目缺一個就失敗 ──┐
+   │                                ▼
+   ├─ 成功 → <head> 寫入變數＋覆寫層＋來源 meta    失敗／找不到 → 整頁原生樣式
+   │         插槽填 Logo                            <meta name="vt-theme" content="default" data-reason="…">
+   │                                                verify 印「沒找到居家先生 CI，改用原本樣式：…」
+   └─ 冪等：重跑會整段換新；切回 default 會整段拿掉（不留半套）
+```
+
+**寫進 HTML 的標記只留版本號、不留路徑**（產出會分享出去，本機路徑、`~` 縮寫、session id 都不能出現；verify 會檢查）：
+
+```html
+<!-- 居家先生 CI 來源：MR. LIVING CI v0.6 -->
+<meta name="vt-theme" content="mrl" data-source="MR. LIVING CI v0.6" data-version="v0.6" data-promo="#C34135">
+<!-- 退回原生時 -->
+<meta name="vt-theme" content="default" data-reason="找不到 mr-living-presentation">
+```
+
+skill 實際在哪個路徑、試過哪些地方，只印在終端機（`brand.py show`、verify 的輸出），方便除錯。
+
+**必要項目**（名稱對值抓，不看行號）：`INK`、`BLUE`、`GREIGE`、`GREIGE_2`（python 色票區塊）、`--brand-bg`、`--brand-light-blue`、`--brand-promo`、`--brand-white`（css 色票區塊）、字型表的「中文」「英文」兩列、三個 Logo 檔（`logo-symbol-on-light.png`、`logo-with-slogan.png`、`typography-c.png`）真的存在。版本號讀 H1 的 `vX.Y`，讀不到標「版本不明」但不算失敗。
+
+**變數怎麼對**（只換值、不換名；推導值都從讀到的色算出來，不寫死色碼）：
+
+| 變數 | 來源 |
+|---|---|
+| `--ivory` `--bg` | `--brand-bg` |
+| `--paper` `--bg-card` | `--brand-white` |
+| `--slate` `--text` | `INK` |
+| `--clay` `--accent` | `BLUE` |
+| `--clay-d` `--accent-strong` | `BLUE` 加深 20%（推導） |
+| `--oat` | `--brand-light-blue` |
+| `--olive`、新增 `--greige-2` | `GREIGE_2` |
+| 新增 `--greige` | `GREIGE`：**只當粗體小標**（eyebrow、表頭、計數、右上小標） |
+| `--g100` / `--g200` / `--g300` | 淺灰 40%／暖灰 20%／暖灰 40%（CI 色階表；表上沒有就跟白混） |
+| `--g500` `--text-soft` | `GREIGE` 往 `INK` 加深到白底對比 ≥ 4.5（推導；灰褐原色當小字不夠清楚） |
+| `--g700` `--text-muted` | `GREIGE` 與 `INK` 混 75%（推導） |
+| `--clay-soft` `--accent-soft` | 淺藍 20% |
+| `--red*`（警示、變差） | **暫代**：從 `--brand-promo` 的色相往紫紅轉 20° 起、字色加深到對比 ≥ 6，直到跟促銷紅差 ΔE ≥ 20（推導）。**不是促銷紅**。見下方「對 CI 的刻意偏離」 |
+| `--green*`（好轉）`--yellow*`（注意）`--orange*` | CI 沒有。從 `BLUE` 的飽和度打折、換色相（135°／40°）；淺底 L=94%、字色加深到淺底與白底都 ≥ 4.5（推導，跟著品牌藍變）。`--orange*` 同 `--yellow*` |
+| `--sans` `--serif` `--num-font` | CI 英文字型清單**跳過「1 像 I」的字型**（易混字形規則，目前是 Gill Sans）→ 下一順位（Century Gothic → Arial）→ 中文字型。CI 沒有襯線字，標題與內文同一套；`--mono` 不動（程式碼要等寬） |
+| `--chart-1`～`--chart-4` | 圖表序列：中性灰褐由深到淺（`GREIGE_2`／`GREIGE` 跟 `INK`、白混出來，推導） |
+| `--chart-focus` | 圖表重點那一條／一根：`BLUE`。一張圖只給一個序列 |
+| `--purple*` | 原生是第三個裝飾色；mrl 改成中性灰褐（品牌藍不當裝飾色） |
+| `--brand-promo` | 促銷紅：只宣告、不指派給任何語意變數 |
+
+另外內嵌 `assets/themes/mrl.css` 覆寫層（只用變數、沒有色碼；測試會擋色碼）。共同原則：無襯線、小標用粗體灰褐（不用等寬字）、細線方正（圓角 ≤ 4px）、品牌藍只給重點。
+
+| 頁型 | 覆寫層管什麼 |
+|---|---|
+| 捲動式頁面（base-template、explainer、marathon-decision-sheet、spec-alignment，`html:not([data-layout])`）| H1 收斂到 28–36px（範例頁行內寫的字級也收）；編號（`.idx`／`.sec-idx`／`.section-num`）一律數字字型＋品牌藍、不加框；等寬小標（`.eyebrow`、`.stat-label`、`.mock-label`、`.myth .h`、`.tag`…）改粗體灰褐無襯線；卡片圓角 4px、小元件 2px；襯線斜體大數字改數字字型粗體；範例頁寫死的暖色字改吃語意變數；裝飾性的藍點、藍邊條改中性色。**mock 樣張不動**（代表產品畫面） |
+| 一頁版（`data-layout="onepage"`）| 版面不動。eyebrow／右欄小標改粗體灰褐、H1 無襯線粗體、主圖框與重點卡方正、重點卡左邊條改墨色（編號保留藍）、頁尾字標 |
+| 簡報（`data-layout="slides"`）| 版面不動。小標、圖示、條列編號、完成節點改中性色；藍只留給標題強調、大數字、圖表重點、表格重點列（CI 一張 2–3 處）|
+
+**品牌藍用量軟提醒**：`slides-check.mjs` 在 mrl 頁逐張數「看得到藍的元素」（字、底、邊線、SVG 填色／描邊、`::before` 點；包在已算過的藍元素裡不重算），超過 3 處印 `!`，`verify.py` 標黃燈「品牌藍用量」——**不算未過**。捲動式頁面目前只靠圖表預設中性色＋人工看截圖。
+
+### 對 CI 的刻意偏離（兩項）
+
+1. **不用 Gill Sans 排網頁文字（易混字形規則）**。Gill Sans 的「1」幾乎是一條直線，跟大寫「I」、小寫「l」分不出來：「SAP B1」讀成「SAP BI」、「B1iF」像「BIiF」、章節號「01」像「0I」。我們的內容大量出現料號、系統名、編號，這是可讀性錯誤、不是風格問題。
+   - **規則不寫死字型**：`brand.py` 的 `AMBIGUOUS_ONE` 清單（前綴比對，Gill Sans MT／Nova 也算）。解析 CI 字型表時遇到就跳過、往下一順位找（現在是 Century Gothic → Arial；Mac 沒有 Century Gothic 時落到 Arial，兩者的「1」都有明顯旗角）；CI 英文字型全在清單裡時退到中文字型的拉丁字（Noto Sans TC）。CI 換字型時照讀，規則只擋清單裡的字。
+   - **為什麼整個跳過、不留給「不含數字的英文標題」**：CSS 沒辦法逐字串判斷有沒有數字，而標題、小標常帶 Q3、2026、B1、01；品牌辨識由官方 Logo PNG（頁首、頁尾、字標）承擔，不靠網頁字型。
+   - 連帶解決：之前為了擋 Gill Sans UltraBold 做的 `local()` 字重別名拿掉了（實測簡報「−99%」用的是 GillSans-Bold，不是 UltraBold；粗寬是 Gill Sans Bold 的數字本身＋260px＋負字距造成，換字型後消失）。
+   - `verify.py` 在 mrl 頁檢查「作者自己又指定了清單裡的字型」（`<style>`、`style=""`、SVG `font-family`、腳本字串），有就 ✗。
+2. **警示色（`--red*`）是推導出來的暫代色**。CI 只有促銷紅 `--brand-promo`，限促銷活動頁；沒有一般用途的紅。舊版用深暖棕代替，結果「注意（黃）」與「警示（紅）」都是棕色、問題標註看起來不像警告。現在由促銷紅推導一個「看得出是警告、又跟促銷紅明顯不同」的深紫紅（色相轉開、加深；ΔE ≥ 20，測試會擋）。**⚠️ 暫代，待設計部門給正式警示色**；給了以後在 CI skill 加一個色票、`brand.py` 改成直接讀。
+
+**踩過的坑（保留）**：
+
+- 灰褐 `#A09C8E` 白底對比只有 2.7:1 → 只當 12px 以上粗體小標；一般弱化字用加深過的 `--g500`。
+- 促銷紅 CI 限促銷頁 → 不當警示色。要用就寫在 class 含 `promo` 的元素上；其他地方出現 `verify.py` 判 ✗。
+- Logo 四周留白 ≥ 短邊 1/2（SKILL.md 寫 1/2、VI 寫 1/3X，取較嚴）。留白寫成變數，不吃「密度」縮放。
+- Gill Sans 的「1」像「I」→ 易混字形規則整個跳過（見上方「對 CI 的刻意偏離」）。也不嵌任何英文字型檔（網頁授權另計），用系統裝的 Century Gothic／Arial。
+- 狀態標籤是「淺底＋字色」：三色的字色要彼此 ΔE ≥ 20、在淺底與白底都 ≥ 4.5；只換字色不換淺底時，黃紅兩種標籤會分不出來（舊版踩過）。
+- 圖表別整片藍：序列用 `--chart-1`～`--chart-4`（中性灰褐），重點那一條才用 `--chart-focus`。
+- Noto Sans TC 由 Google Fonts 載入；離線時退回蘋方／微軟正黑體。
+- SVG 圖的顏色寫成 `style="fill: var(--…)"` 才會跟著換主題；寫死 `fill="#…"` 的圖會保留原生配色。
+
+**插槽**（範本已放好，蓋章時填）：`<!-- vt-brand:header -->`（報告頁頁首：符號＋字標＋右上小標）、`<!-- vt-brand:footer -->`（頁尾 Logo＋Slogan）、`<!-- vt-brand:mark -->`（一頁版頁尾、簡報封面右上的字標）。base-template、explainer、marathon-decision-sheet、spec-alignment 都已放好頁首與頁尾插槽。Logo 以 data URI 內嵌，產出單檔可攜。
+
+**品牌頁首一定在 session 色帶下方**：色帶由腳本在執行期插到「第一個 `<header>` 的最前面」（沒有 header 就是 `<body>` 最前面），所以插槽要放在那個 header 裡面（或之後）。捲動式頁面漏了插槽時，蓋章自動補：頁首補在第一個 `<header>` 裡最前面（那個 header 是 sticky／fixed 就補在它後面，Logo 才不會一直佔畫面；沒有 header 才補在 `<body>` 後）；頁尾補在 `</body>` 前。
+
+**怎麼關**：`verify.py <file> --theme=default`、`<html data-vt-theme="default">`、`HTML_VISUALIZER_THEME=default`、`profile.py set tokens.theme=default`（優先序同上圖）。
+
+**測試用環境變數**：`HTML_VISUALIZER_BRAND_DIR=<目錄>` 指定 CI skill；`HTML_VISUALIZER_BRAND_SEARCH=off` 只看指定目錄（模擬「其他地方都找不到」）。
 
 ## 配色語意（Anthropic 風）
 

@@ -3,9 +3,10 @@
 """html-visualizer 產出自檢 — 一行跑完 SKILL.md Step 3 的所有檢查。
 
 用法：
-    python3 <skill 目錄>/scripts/verify.py <file.html> [--no-layout] [--no-stamp]
+    python3 <skill 目錄>/scripts/verify.py <file.html> [--no-layout] [--no-stamp] [--theme=mrl|default]
 
-檢查前會先「蓋章」（改寫受檢檔）：套用使用者設定檔、把寫死的字級與間距改成可調、補上調整面板。
+檢查前會先「蓋章」（改寫受檢檔）：套用品牌主題（預設 mrl＝現場讀居家先生 CI，找不到就用原本樣式）、
+使用者設定檔、把寫死的字級與間距改成可調、補上調整面板。
 範本原檔不蓋；唯讀環境或審查時加 --no-stamp。
 
 規則來源：SKILL.md § Step 3。
@@ -352,6 +353,68 @@ def _css_class_table(h):
     return table
 
 
+def check_promo(full):
+    """mrl 主題下，促銷紅不可當一般色（CI：限促銷活動頁）。回傳 (是否 mrl 頁, 違規清單)。
+
+    允許：選擇器或元素 class 含 promo 的地方（刻意的促銷標示）、可見文字裡提到色碼（文件在講 CI）。
+    其他任何地方用到它——<style> 規則、style=""、SVG fill、腳本字串、var(--brand-promo)——都算違規。
+    主題區塊本身宣告 --brand-promo 不算。
+    """
+    meta = re.search(r'<meta name="vt-theme" content="mrl"[^>]*data-promo="(#[0-9A-Fa-f]{6})"', full)
+    if not meta:
+        return False, []
+    promo = meta.group(1)
+    r, g, b = (int(promo[i:i + 2], 16) for i in (1, 3, 5))
+    pat = re.compile(re.escape(promo) + r"(?![0-9A-Fa-f])|rgba?\(\s*%d\s*,\s*%d\s*,\s*%d\b|var\(\s*--brand-promo\b" % (r, g, b), re.I)
+    h = stamp_mod._THEME_BLOCK.sub("", full)
+    bad = []
+    for css in re.findall(r"<style[^>]*>(.*?)</style>", h, re.S | re.I):
+        css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
+        for m in re.finditer(r"([^{}]+)\{([^{}]*)\}", css):
+            if pat.search(m.group(2)) and "promo" not in m.group(1).lower():
+                bad.append(f"樣式規則 {m.group(1).strip()[-40:]}")
+    rest = re.sub(r"<style[^>]*>.*?</style>", " ", h, flags=re.S | re.I)
+    for m in re.finditer(r"<script\b[^>]*>(.*?)</script\s*>", rest, re.S | re.I):
+        if pat.search(m.group(1)):
+            bad.append("腳本字串（圖表或動態樣式）")
+    rest = re.sub(r"<script\b[^>]*>.*?</script\s*>", " ", rest, flags=re.S | re.I)
+    for m in re.finditer(r"<[a-zA-Z][^<>]*>", rest):
+        tag = m.group(0)
+        if pat.search(tag):
+            cls = re.search(r'class="([^"]*)"', tag)
+            if not (cls and "promo" in cls.group(1).lower()):
+                bad.append(f"元素 {tag[:48]}")
+    return True, bad
+
+
+# 真正的品牌 Logo（插槽填進去的圖）。範本自帶的空殼容器（例如 vt-brand-footwrap）不算
+BRAND_IMG = re.compile(r'class="vt-brand-(?:sym|word|foot|mark)"')
+
+
+def check_ambiguous_font(full):
+    """mrl 頁面裡，作者自己指定了「1 像 I」的字型（brand.AMBIGUOUS_ONE，例如 Gill Sans）→ 列出位置。
+    主題區塊本身不算（brand.py 已經把它排除）；可見文字裡提到字型名（文件在講 CI）也不算。"""
+    names = getattr(stamp_mod.brand_mod, "AMBIGUOUS_ONE", ())
+    if not names:
+        return []
+    h = stamp_mod._THEME_BLOCK.sub("", full)
+    alt = "|".join(re.escape(n) for n in names)
+    pat = re.compile(r"font(?:-family)?\s*[:=]\s*[\"']?[^;{}<>]*?(?:" + alt + r")", re.I)
+    bad = []
+    for css in re.findall(r"<style[^>]*>(.*?)</style>", h, re.S | re.I):
+        for m in re.finditer(r"([^{}]+)\{([^{}]*)\}", re.sub(r"/\*.*?\*/", "", css, flags=re.S)):
+            if pat.search(m.group(2)):
+                bad.append(f"樣式規則 {m.group(1).strip()[-40:]}")
+    rest = re.sub(r"<style[^>]*>.*?</style>", " ", h, flags=re.S | re.I)
+    for m in re.finditer(r"<[a-zA-Z][^<>]*>", rest):
+        if pat.search(m.group(0)):
+            bad.append(f"元素 {m.group(0)[:48]}")
+    for m in re.finditer(r"<script\b[^>]*>(.*?)</script\s*>", rest, re.S | re.I):
+        if pat.search(m.group(1)):
+            bad.append("腳本字串（圖表或畫布字型）")
+    return bad
+
+
 def check_class_collision(h):
     """同一元素掛了兩個都在管佈局的 class → 兩套規則互相覆蓋。
 
@@ -411,8 +474,9 @@ def main(path):
     elif "--no-stamp" in sys.argv:
         report(SKIP, "--no-stamp", "這次不改檔；下方字級覆蓋率也跳過")
     else:
+        theme_arg = next((a.split("=", 1)[1] for a in sys.argv if a.startswith("--theme=")), None)
         try:
-            new, rep = stamp_mod.stamp_page(h, profile)
+            new, rep = stamp_mod.stamp_page(h, profile, theme=theme_arg)
         except Exception as e:  # 資產壞了（例如內嵌腳本含結尾標籤）要擋下來，不能默默略過
             report(BAD, "蓋章失敗", str(e)[:100])
             new, rep = h, None
@@ -432,6 +496,10 @@ def main(path):
                 src = "你的設定檔" if profile_exists else "沒有設定檔，全部沿用範本原值"
                 what = "本次有更新" if new_changed else "已是最新，檔案沒有變動"
                 report(OK, "已蓋章", f"{src}；{what}；調整面板 {rep['tweaks_ver']}")
+                # 主題訊息一定要印：退回原生樣式時，作者要知道原因（找不到 skill／解析失敗）
+                print(f"    ▸ {rep['theme_msg']}")
+                if not rep["theme_ok"]:
+                    report(WARN, "品牌主題退回原本樣式", "原因見上一行；整頁都是原生樣式，沒有半套")
 
     # 下面的靜態檢查量的是作者寫的內容：蓋章加上的東西（面板、設定檔變數、字級算式）先還原，否則按篇幅算的
     # 檢查會誤判（短頁被當長文件、第一題位置被往後推）。腳本健檢仍看蓋好的整頁，面板也要實際跑過
@@ -529,6 +597,44 @@ def main(path):
         if "diagram-explore" not in h and "xp-panel" not in h:
             report(BAD, "寫了說明但沒內嵌探索層腳本", "把 assets/diagram-explore.{css,js} 整段貼進頁面")
 
+    # ── 品牌主題 ─────────────────────────────────
+    meta = re.search(r'<meta name="vt-theme" content="([a-z]+)"([^>]*)>', full)
+    head("品牌主題")
+    if not meta:
+        report(SKIP, "頁面沒有主題標記", "範本原檔／--no-stamp／舊產出")
+    elif meta.group(1) == "mrl":
+        src = re.search(r'data-source="([^"]*)"', meta.group(2))
+        ver = re.search(r'data-version="([^"]*)"', meta.group(2))
+        report(OK, "居家先生 CI", src.group(1) if src else (ver.group(1) if ver else "?"))
+        # 全有或全無：head 有變數區塊、頁面有品牌 Logo（一般報告頁）
+        whole = 'id="vt-theme"' in full and (BRAND_IMG.search(full) or re.search(r'<html[^>]*\bdata-layout=', full))
+        report(OK if whole else BAD, "主題完整套用（變數＋Logo）", "" if whole else "只有一部分 CI，重跑 verify 蓋章")
+        amb = check_ambiguous_font(full)
+        report(OK if not amb else BAD, "沒有用「1 像 I」的字型（易混字形規則）",
+               "" if not amb else "；".join(amb[:3]) + "——數字與英文改用 var(--num-font)／var(--sans)，不要指定這套字")
+        _, promo_bad = check_promo(full)
+        report(OK if not promo_bad else BAD, "促銷紅沒有當一般色",
+               "" if not promo_bad else "；".join(promo_bad[:4]) + "——CI 規定限促銷頁；要用就寫在 class 含 promo 的元素上")
+    else:
+        why = re.search(r'data-reason="([^"]*)"', meta.group(2))
+        leak = bool(BRAND_IMG.search(full)) or 'id="vt-theme"' in full
+        report(OK if not leak else BAD, "原本樣式", (why.group(1)[:120] if why else "") if not leak else "還殘留居家先生 CI 的區塊（半套）")
+
+    # ── 本機路徑 ─────────────────────────────────
+    # 產出頁會轉寄、打包給別人，不能帶本機路徑。範圍取捨：
+    # ① 蓋章注入的區塊（主題、品牌插槽、自動頁首頁尾、設定檔變數、Tailwind 覆寫、調整面板）全查，
+    #    命中就是工具的錯 → ✗；內嵌圖 data: URI 先去掉（base64 可能剛好拼出 /Users）。
+    # ② 整頁查「本 skill 目錄的絕對路徑」與 meta 主題標記：這兩種字串只可能是工具寫進去的 → ✗。
+    # ③ 作者正文不查一般路徑樣式：正文可能本來就在教「把檔案放到 ~/.config」，查了會誤判。
+    head("本機路徑")
+    leaks = stamp_mod.local_path_leaks(full)
+    if meta and not re.search(r"<!-- vt-theme:begin", full):
+        leaks += [("主題標記", m.group(0)) for m in stamp_mod.LOCAL_PATH.finditer(meta.group(0))]
+    if SKILL_DIR in full:
+        leaks.append(("整頁", SKILL_DIR))
+    report(OK if not leaks else BAD, "蓋章區塊與調整面板不含本機路徑",
+           "" if not leaks else "；".join(f"{n}：{t.strip()[:60]}" for n, t in leaks[:3]) + "——更新 skill 後重跑 verify 蓋章")
+
     # ── Session 識別 ─────────────────────────────
     head("Session 識別")
     # 範本原檔本來就該留空（複製去用時才填），不算未過
@@ -545,7 +651,9 @@ def main(path):
     # ── 拍板機制 ─────────────────────────────────
     if decisions:
         head("拍板機制")
-        names = {n for n in re.findall(r'name="([^"]+)"', h) if not n.startswith("${") and n != "viewport"}
+        # <meta name=…>（viewport、vt-brand-label）不是拍板選項
+        no_meta = re.sub(r"<meta\b[^>]*>", " ", h, flags=re.I)
+        names = {n for n in re.findall(r'name="([^"]+)"', no_meta) if not n.startswith("${")}
         gv = set(re.findall(r'getValue\("([^"]+)"\)', h))
         gc = set(re.findall(r'getComment\("([^"]+)"\)', h))
         cf = {x for x in re.findall(r'data-comment-for="([^"]+)"', h) if not x.startswith("${")}
@@ -662,6 +770,9 @@ def main(path):
                        "逐張看下方截圖" if status == "ok" else "拆成兩張或砍字，不要縮字級（references/slides.md）")
                 for ln in lines:
                     print("     " + ln)
+                many = [ln for ln in lines if "品牌藍" in ln]
+                if many:  # 軟提醒：CI 一張藍色 2–3 處；不擋
+                    report(WARN, "品牌藍用量", f"{len(many)} 張超過 3 處——裝飾改中性色，藍只留給重點（軟提醒，不算未過）")
 
     # ── 影片場景 ─────────────────────────────────
     # 有 data-scene 或 #video-scenes 的頁可交給 render-video.mjs 出片（references/video-explainer.md）

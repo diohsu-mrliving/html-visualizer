@@ -68,7 +68,7 @@ description: 用 @unovis 加一份 design token 做風格統一的資料圖表�
 |---|---|---|
 | 1 | **專案自己的圖表 / 品牌 token** | 最可靠的找法＝**看既有圖表元件正在用什麼**（`rg 'color=' 圖表元件目錄`），再回頭追那個變數的定義；直接翻樣式檔容易漏 |
 | 2 | 專案的 shadcn 圖表色 | `--chart-1` ~ `--chart-5` |
-| 3 | 嵌在 html-visualizer 頁面時：該頁的 token（clay / olive / yellow / g500 序列）| 見 html-visualizer `component-library.md` § 資料圖表 |
+| 3 | 嵌在 html-visualizer 頁面時：該頁的 token——有 `--chart-1`～`--chart-4`／`--chart-focus`（mrl 主題：中性灰褐序列＋藍只給重點）先用；沒有才用 clay / olive / yellow / g500 序列 | 見 html-visualizer `component-library.md` § 資料圖表 |
 | 4 | 本 skill 的 `templates/tokens.css` | **只在獨立圖表頁、且專案沒有任何配色系統時**才用 |
 
 專案通常是**兩層**：品牌層（原始色值）→ 語意層（角色命名，如「B 端強調」「達標綠」）。**用語意層、不要直接抓品牌層**，語意層才帶著「這個顏色代表什麼」的意思。

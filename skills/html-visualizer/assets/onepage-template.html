@@ -321,33 +321,34 @@
             >
               <title id="op-title">主圖標題</title>
               <desc id="op-desc">三個步驟由左到右：輸入、處理、輸出。</desc>
+              <!-- 顏色寫成 style＋變數（不用 fill="#…" 屬性）：換主題（例如 mrl）時圖才會跟著換色 -->
               <defs>
                 <marker id="op-arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
-                  <polygon points="0 0, 10 4, 0 8" fill="#87867f" />
+                  <polygon points="0 0, 10 4, 0 8" style="fill: var(--g500)" />
                 </marker>
                 <marker id="op-arrow-accent" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
-                  <polygon points="0 0, 10 4, 0 8" fill="#b85c3e" />
+                  <polygon points="0 0, 10 4, 0 8" style="fill: var(--clay-d)" />
                 </marker>
               </defs>
-              <rect width="100%" height="100%" fill="#ffffff" />
+              <rect width="100%" height="100%" style="fill: var(--paper)" />
 
               <!-- 第 2 幕：第一條線 -->
               <g data-scene="2">
                 <g class="edge" data-from="in" data-to="proc" data-label="交給">
-                  <path class="ln draw" pathLength="1" d="M 280,280 H 386" fill="none" stroke="#87867f" stroke-width="2" marker-end="url(#op-arrow)" />
+                  <path class="ln draw" pathLength="1" d="M 280,280 H 386" fill="none" style="stroke: var(--g500)" stroke-width="2" marker-end="url(#op-arrow)" />
                 </g>
               </g>
               <!-- 第 3 幕：第二條線（主線，accent） -->
               <g data-scene="3">
                 <g class="edge" data-from="proc" data-to="out" data-label="產出">
-                  <path class="ln draw" pathLength="1" d="M 614,280 H 720" fill="none" stroke="#b85c3e" stroke-width="2.4" marker-end="url(#op-arrow-accent)" />
+                  <path class="ln draw" pathLength="1" d="M 614,280 H 720" fill="none" style="stroke: var(--clay-d)" stroke-width="2.4" marker-end="url(#op-arrow-accent)" />
                 </g>
               </g>
 
               <!-- 第 1 幕：輸入 -->
               <g data-scene="1">
                 <g class="node" data-id="in" data-kind="ours" data-title="輸入" transform="translate(60,220)">
-                  <rect class="box" width="220" height="120" rx="8" fill="#ffffff" stroke="#87867f" stroke-width="1.5" />
+                  <rect class="box" width="220" height="120" rx="8" style="fill: var(--paper); stroke: var(--g500)" stroke-width="1.5" />
                   <text x="110" y="52" class="n" text-anchor="middle">輸入</text>
                   <text x="110" y="84" text-anchor="middle">一句補充</text>
                 </g>
@@ -355,7 +356,7 @@
               <!-- 第 2 幕：處理 -->
               <g data-scene="2">
                 <g class="node" data-id="proc" data-kind="ours" data-title="處理" transform="translate(390,220)">
-                  <rect class="box" width="220" height="120" rx="8" fill="#ffffff" stroke="#87867f" stroke-width="1.5" />
+                  <rect class="box" width="220" height="120" rx="8" style="fill: var(--paper); stroke: var(--g500)" stroke-width="1.5" />
                   <text x="110" y="52" class="n" text-anchor="middle">處理</text>
                   <text x="110" y="84" text-anchor="middle">一句補充</text>
                 </g>
@@ -363,7 +364,7 @@
               <!-- 第 3 幕：輸出（強調 ≤ 2 處） -->
               <g data-scene="3">
                 <g class="node" data-id="out" data-kind="ours" data-title="輸出" transform="translate(724,220)">
-                  <rect class="box" width="220" height="120" rx="8" fill="#fbe9df" stroke="#d97757" stroke-width="1.5" />
+                  <rect class="box" width="220" height="120" rx="8" style="fill: var(--accent-soft); stroke: var(--clay)" stroke-width="1.5" />
                   <text x="110" y="52" class="n" text-anchor="middle">輸出</text>
                   <text x="110" y="84" class="accent" text-anchor="middle">一句補充</text>
                 </g>
@@ -395,6 +396,8 @@
       <footer class="op-foot">
         <span>出處／資料時間：__SOURCE__</span>
         <span>__DATE__</span>
+        <!-- 品牌插槽：蓋章時 mrl 主題填居家先生字標，原生樣式留空 -->
+        <!-- vt-brand:mark --><!-- /vt-brand:mark -->
       </footer>
     </div>
 

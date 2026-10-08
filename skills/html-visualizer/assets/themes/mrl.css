@@ -1,0 +1,154 @@
+/* ═══ 居家先生 CI 覆寫層（mrl 主題）═══
+   由 scripts/brand.py 在蓋章時內嵌；顏色一律用變數，值由 brand.py 從居家先生 skill 現場讀出。
+   這個檔不能出現任何色碼：CI 換色時這裡不用改。
+   html:not([data-layout]) ＝ 捲動式頁面：base-template、explainer、marathon-decision-sheet、spec-alignment 等範例頁型。
+   一頁版與簡報各有一段（版面不動，只換字型、小標、圓角與藍色用量）。
+   共同原則：無襯線、小標用粗體灰褐（不用等寬字）、細線方正（圓角 ≤ 4px）、品牌藍只給重點。 */
+
+/* ── 品牌頁首（插槽 vt-brand:header）：官方 PNG，不重繪；留白 ≥ 符號短邊 1/2 ── */
+.vt-brandbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 24px;
+  padding: var(--vt-logo-pad) 0;
+  border-bottom: 1px solid var(--vt-brand-rule);
+  margin-bottom: 48px;
+}
+.vt-brand-lockup { display: flex; align-items: center; gap: var(--vt-logo-pad); }
+.vt-brand-sym { height: 44px; width: auto; display: block; }
+.vt-brand-word { height: 22px; width: auto; display: block; }
+.vt-brand-label { font-size: 12px; font-weight: 700; color: var(--greige); letter-spacing: 0.04em; text-align: right; }
+.vt-brand-auto { width: min(94vw, var(--wrap-max, 1760px)); margin: 0 auto; padding: 0 32px; }
+/* 頁尾 Logo＋Slogan（插槽 vt-brand:footer） */
+.vt-brand-foot { display: block; width: 72px; height: auto; margin: var(--vt-logo-foot-pad) 0; }
+.vt-brand-footwrap { border-top: 1px solid var(--vt-brand-rule); margin-top: 40px; }
+.vt-brand-footwrap:not(:has(img)) { display: none; }
+/* 小字標（插槽 vt-brand:mark：一頁版頁尾、簡報封面） */
+.vt-brand-mark { display: block; height: 22px; width: auto; margin: var(--vt-logo-pad) 0; }
+.slide .vt-brand-mark { position: absolute; top: 56px; right: 72px; margin: 0; height: 28px; }
+@media (max-width: 640px) {
+  .vt-brand-label { display: none; }
+  .vt-brand-word { height: 16px; }
+  .vt-brand-sym { height: 36px; }
+  .vt-brand-auto { width: 100%; padding: 0 14px; }
+}
+
+/* ═══ 捲動式頁面（報告、教學、決策、規格對齊）═══ */
+/* 標題：克制字級、無襯線粗體。範例頁的 h1 常寫行內字級，所以字級要 !important 才收得住 */
+html:not([data-layout]) body h1 {
+  font-family: var(--sans); font-weight: 700; font-size: clamp(28px, 3vw, 36px) !important;
+  line-height: 1.3; letter-spacing: 0; max-width: 44ch;
+}
+html:not([data-layout]) h2, html:not([data-layout]) h3, html:not([data-layout]) h4,
+html:not([data-layout]) .serif, html:not([data-layout]) .step-title, html:not([data-layout]) .def-term,
+html:not([data-layout]) .analogy-head, html:not([data-layout]) .phase-item-title {
+  font-family: var(--sans); letter-spacing: 0;
+}
+html:not([data-layout]) h2, html:not([data-layout]) h3 { font-weight: 700; }
+html:not([data-layout]) h1 em, html:not([data-layout]) h2 em, html:not([data-layout]) h3 em { color: var(--clay); font-weight: 700; font-style: normal; }
+html:not([data-layout]) .sec-head h2 { font-family: var(--sans); font-weight: 700; font-size: 24px; letter-spacing: 0; }
+
+/* 編號：數字字型、品牌藍、不加框（base 的 .idx、explainer 的 .sec-idx、marathon 的 .section-num 同一個樣子） */
+html:not([data-layout]) .sec-head .idx,
+html:not([data-layout]) .sec-idx,
+html:not([data-layout]) .section-num {
+  font-family: var(--num-font); font-size: 24px; font-weight: 400; color: var(--clay);
+  background: transparent; border: 0; border-radius: 0; box-shadow: none;
+  width: 44px; height: auto; justify-content: flex-start; line-height: 1.2;
+}
+html:not([data-layout]) .sec-head .count { font-family: var(--num-font); background: transparent; color: var(--greige); font-weight: 700; padding: 0; }
+html:not([data-layout]) nav.toc a .n, html:not([data-layout]) .toc a .n,
+html:not([data-layout]) .nav-link-num, html:not([data-layout]) .qmap-row .q-idx {
+  font-family: var(--num-font); color: var(--greige); background: transparent; border-radius: 0;
+}
+
+/* 小標：粗體灰褐、無襯線（不用等寬字）。灰褐只當 12px 以上粗體小標；一般弱化字用 --g500（已加深到可讀） */
+html:not([data-layout]) .eyebrow,
+html:not([data-layout]) .stat-label, html:not([data-layout]) .mock-label,
+html:not([data-layout]) .myth .h, html:not([data-layout]) .reveal > summary .tag,
+html:not([data-layout]) .def-term .orig, html:not([data-layout]) .layer .tag,
+html:not([data-layout]) .seq-msg .dir, html:not([data-layout]) .tokrow .k,
+html:not([data-layout]) .metric-side .label, html:not([data-layout]) .qa-step-num,
+html:not([data-layout]) .qmap-row .q-sec, html:not([data-layout]) .qmap-state, html:not([data-layout]) .nav-count,
+html:not([data-layout]) .adr-table th, html:not([data-layout]) .chip, html:not([data-layout]) .tag {
+  font-family: var(--sans); font-weight: 700; letter-spacing: 0.06em;
+}
+html:not([data-layout]) .eyebrow, html:not([data-layout]) .stat-label, html:not([data-layout]) .mock-label,
+html:not([data-layout]) .reveal > summary .tag, html:not([data-layout]) .layer .tag, html:not([data-layout]) .tokrow .k {
+  color: var(--greige); font-size: 12px;
+}
+html:not([data-layout]) .eyebrow { letter-spacing: 0.08em; font-size: 12px; }
+html:not([data-layout]) .eyebrow::before { background: var(--greige); }
+html:not([data-layout]) .myth .m-wrong .h { color: var(--red); }
+html:not([data-layout]) .myth .m-right .h { color: var(--green); }
+
+/* 大數字：數字字型、正體、粗體（不用襯線斜體） */
+html:not([data-layout]) .stat-value, html:not([data-layout]) .metric-side .num, html:not([data-layout]) .pain-stat {
+  font-family: var(--num-font); font-style: normal; font-weight: 700; letter-spacing: 0;
+}
+html:not([data-layout]) .def-oneliner em, html:not([data-layout]) .analogy-head em { font-style: normal; font-weight: 700; }
+
+/* 細線方正：卡片 4px、小元件 2px（mock 樣張代表產品畫面，保留原樣，不在這裡） */
+html:not([data-layout]) .card, html:not([data-layout]) .card-soft, html:not([data-layout]) .stat-card,
+html:not([data-layout]) .def-card, html:not([data-layout]) .analogy, html:not([data-layout]) .seq,
+html:not([data-layout]) .myth, html:not([data-layout]) .bound, html:not([data-layout]) .reveal,
+html:not([data-layout]) .metric-card, html:not([data-layout]) .pain-card, html:not([data-layout]) .ba-col,
+html:not([data-layout]) .flow-stage, html:not([data-layout]) .adr-table, html:not([data-layout]) .qa-step,
+html:not([data-layout]) .commit-box, html:not([data-layout]) .qmap-row, html:not([data-layout]) .modal {
+  border-width: 1px; border-radius: 4px;
+}
+html:not([data-layout]) .layer:first-child, html:not([data-layout]) .layer:last-child,
+html:not([data-layout]) .seq-actor, html:not([data-layout]) .seq-msg, html:not([data-layout]) .tree-node,
+html:not([data-layout]) .tree-leaf, html:not([data-layout]) .metric-side, html:not([data-layout]) .nav-link,
+html:not([data-layout]) .analogy-limit, html:not([data-layout]) .tokchip, html:not([data-layout]) .chip,
+html:not([data-layout]) .tag, html:not([data-layout]) .highlight-box {
+  border-radius: 2px;
+}
+html:not([data-layout]) .choice, html:not([data-layout]) textarea.note, html:not([data-layout]) textarea.cmt,
+html:not([data-layout]) select.pick, html:not([data-layout]) .btn, html:not([data-layout]) .btn-primary,
+html:not([data-layout]) .btn-secondary { border-radius: 4px; }
+html:not([data-layout]) nav.toc a, html:not([data-layout]) .toc a { border-width: 1px; border-radius: 2px; background: transparent; }
+html:not([data-layout]) .badge { font-family: var(--sans); border-radius: 2px; letter-spacing: 0.02em; }
+html:not([data-layout]) .badge-clay { background: var(--clay-soft); border-color: var(--clay-border); }
+html:not([data-layout]) .inline-decide-head { font-family: var(--sans); font-weight: 700; border-radius: 2px; }
+html:not([data-layout]) table th { font-weight: 700; color: var(--greige); background: var(--paper); border-bottom: 1px solid var(--slate); }
+
+/* 範例頁寫死的暖色字（原生 Anthropic 配色）改吃語意變數 */
+html:not([data-layout]) .hl { background: linear-gradient(transparent 58%, var(--oat) 58%); }
+html:not([data-layout]) .analogy-head { color: var(--slate); }
+html:not([data-layout]) .analogy-limit { color: var(--yellow); }
+html:not([data-layout]) .seq-msg.ok, html:not([data-layout]) .tree-node.success { color: var(--green); }
+html:not([data-layout]) .tree-node.degraded { color: var(--yellow); }
+
+/* 品牌藍只給重點：裝飾性的點、箭頭、左邊條改中性色 */
+html:not([data-layout]) .step::before { background: var(--slate); box-shadow: 0 0 0 1.5px var(--slate); }
+html:not([data-layout]) .reveal > summary::before { color: var(--greige); }
+html:not([data-layout]) .def-card { border-left-color: var(--slate); }
+
+html:not([data-layout]) footer.foot { border-top: 1px solid var(--vt-brand-rule); }
+html:not([data-layout]) footer.foot .k { font-family: var(--sans); font-style: normal; font-weight: 500; }
+
+/* ═══ 一頁版：版面不動；小標、標題、重點卡跟報告頁同一套 ═══ */
+html[data-layout="onepage"] .op-head .eyebrow,
+html[data-layout="onepage"] .op-side h2 {
+  font-family: var(--sans); font-weight: 700; color: var(--greige); letter-spacing: 0.08em;
+}
+html[data-layout="onepage"] .op-head .eyebrow::before { background: var(--greige); }
+html[data-layout="onepage"] body .op-head h1 { font-family: var(--sans); font-weight: 700; letter-spacing: 0; line-height: 1.2; }
+html[data-layout="onepage"] .op-fig .figure { border-width: 1px; border-radius: 4px; }
+html[data-layout="onepage"] .op-take { border-width: 1px; border-left: 3px solid var(--slate); border-radius: 2px; }
+html[data-layout="onepage"] .op-take::before { font-family: var(--num-font); font-weight: 400; color: var(--clay); }
+html[data-layout="onepage"] .op-foot { font-family: var(--sans); border-top-width: 1px; }
+/* 字標放頁尾最右，日期靠右 */
+html[data-layout="onepage"] .op-foot:has(.vt-brand-mark) { justify-content: flex-start; align-items: center; }
+html[data-layout="onepage"] .op-foot:has(.vt-brand-mark) > span:last-of-type { margin-left: auto; }
+html[data-layout="onepage"] .op-foot .vt-brand-mark { height: 18px; margin: 0 0 0 var(--vt-logo-pad); }
+
+/* ═══ 簡報：CI 一張藍色 2–3 處。藍只留給標題強調、大數字、圖表重點、表格重點列；
+   其他裝飾（小標、圖示、條列點、完成節點）改中性色 ═══ */
+html[data-layout="slides"] .slide .eyebrow { color: var(--greige); font-family: var(--sans); font-weight: 700; }
+html[data-layout="slides"] .slide .icon { color: var(--slate); }
+html[data-layout="slides"] .bl-list > li::before { background: var(--bg-soft-2); color: var(--slate); }
+html[data-layout="slides"] .tl-item.is-done::before { background: var(--slate); border-color: var(--slate); }
+html[data-layout="slides"] .slide .result { color: var(--slate); }
+html[data-layout="slides"] .slide .bn-num { font-family: var(--num-font); font-weight: 700; letter-spacing: -0.02em; }
+/* 左右比較的「改後」欄：條列點用好轉綠（卡片本身已是綠底），藍留給標題強調 */
+html[data-layout="slides"] .teal .cp-points li::before { background: var(--green); }

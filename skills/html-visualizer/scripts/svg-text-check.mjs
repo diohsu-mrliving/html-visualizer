@@ -43,7 +43,21 @@ if (!pw) {
   process.exit(2);
 }
 
-const browser = await pw.chromium.launch();
+// 套件裝了不代表瀏覽器下載了（沒跑過 playwright install 就是這樣）。
+// 自帶 chromium 起不來時退回系統 Chrome（同 layout-check.mjs）；兩個都沒有才算「無法驗證」。
+async function launchBrowser() {
+  try {
+    return await pw.chromium.launch();
+  } catch {
+    try {
+      return await pw.chromium.launch({ channel: "chrome" });
+    } catch {
+      console.error("找不到可用的瀏覽器：playwright 自帶 chromium 與系統 Chrome 都起不來（無法驗證，不是通過）");
+      process.exit(2);
+    }
+  }
+}
+const browser = await launchBrowser();
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 await page.goto(pathToFileURL(path.resolve(file)).href);
 await page.waitForTimeout(600);

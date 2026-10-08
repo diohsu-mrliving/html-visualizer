@@ -207,8 +207,41 @@ function probe({ i, W, H, TOL }) {
   }
   if (tlen > 28) warns.push(`標題 ${tlen} 字（建議 ≤ 28，一行講完）`);
 
+  // 6. 品牌藍用量（只在 mrl 主題）：CI 寫一張藍色 2–3 處。軟提醒，不擋
+  //    一「處」＝一個看得到藍的元素（字、底、邊線、SVG 填色／描邊、::before 點）；包在已算過的藍元素裡的不重算
+  let blue = 0;
+  if (document.querySelector('meta[name="vt-theme"][content="mrl"]')) {
+    const tmp = document.createElement("i");
+    tmp.style.color = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim();
+    document.body.appendChild(tmp);
+    const acc = getComputedStyle(tmp).color;
+    tmp.remove();
+    const hits = [];
+    const edge = (cs, side) =>
+      parseFloat(cs[`border${side}Width`]) > 0 && cs[`border${side}Style`] !== "none" ? cs[`border${side}Color`] : "";
+    for (const el of s.querySelectorAll("*")) {
+      if (el.closest(".notes, script, style, template, .symbols")) continue;
+      const cs = getComputedStyle(el);
+      if (cs.display === "none" || cs.visibility === "hidden" || +cs.opacity === 0) continue;
+      const r = el.getBoundingClientRect();
+      if (!r.width || !r.height) continue;
+      const own = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
+      const svg = el instanceof SVGElement;
+      const vals = [cs.backgroundColor, edge(cs, "Top"), edge(cs, "Right"), edge(cs, "Bottom"), edge(cs, "Left"),
+        own ? cs.color : "", svg && cs.fill !== "none" ? cs.fill : "", svg && cs.stroke !== "none" ? cs.stroke : ""];
+      for (const ps of ["::before", "::after"]) {
+        const pc = getComputedStyle(el, ps);
+        if (pc.content && pc.content !== "none") vals.push(pc.backgroundColor, pc.color, edge(pc, "Top"));
+      }
+      if (vals.includes(acc) && !hits.some((h) => h.contains(el))) hits.push(el);
+    }
+    blue = hits.length;
+    if (blue > 3)
+      warns.push(`品牌藍 ${blue} 處（CI 一張 2–3 處；軟提醒）：${hits.slice(0, 4).map(label).join("、")}`);
+  }
+
   const narr = (s.getAttribute("data-narration") || (s.querySelector(".notes") || {}).textContent || "").trim();
-  return { layout, issues, warns, narrSrc: s.getAttribute("data-narration") ? "data-narration" : narr ? "notes" : "" };
+  return { layout, issues, warns, blue, narrSrc: s.getAttribute("data-narration") ? "data-narration" : narr ? "notes" : "" };
 }
 
 const rows = [];
