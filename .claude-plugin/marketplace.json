@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "html-visualizer",
-      "description": "Render long-form documents, reports, specs, decision sheets and diagrams as polished HTML for humans. Bundles html-visualizer, chart and diagram-design skills.",
+      "description": "Render long-form documents, reports, specs, decision sheets and diagrams as polished HTML for humans. Bundles html-visualizer, chart, diagram-design and help skills.",
       "author": {
         "name": "Jackle Chen",
         "url": "https://jackle.pro/"

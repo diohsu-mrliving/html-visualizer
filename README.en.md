@@ -84,7 +84,7 @@ Before handing you a page it opens it in a real browser at phone, tablet and des
 
 ## Install
 
-**Prefer plugin installation**: one install includes all three skills. Installation entry points and supported formats vary by platform; use the standalone installer when needed.
+**Prefer plugin installation**: one install includes all four skills. Installation entry points and supported formats vary by platform; use the standalone installer when needed.
 
 **The easy way**: paste this URL to your AI and tell it "install this for me".
 
@@ -108,7 +108,7 @@ Works with Claude Code, Codex, Cursor, Cline, GitHub Copilot, OpenCode and other
 
 Check with `/plugin list`. Update with `/plugin update html-visualizer@diohsu-mrliving`, remove with `/plugin uninstall html-visualizer@diohsu-mrliving`.
 
-**Claude App / claude.ai / Cowork: install all three skills as one plugin.** Upload a custom plugin ZIP under **Customize → Plugins**. Package it from the repository root:
+**Claude App / claude.ai / Cowork: install all four skills as one plugin.** Upload a custom plugin ZIP under **Customize → Plugins**. Package it from the repository root:
 
 ```bash
 git clone https://github.com/diohsu-mrliving/html-visualizer.git
@@ -116,18 +116,19 @@ cd html-visualizer
 zip -r ../html-visualizer-claude-plugin.zip .claude-plugin skills LICENSE
 ```
 
-The plugin contains `html-visualizer`, `chart`, and `diagram-design`; separate uploads are unnecessary. Account-installed plugins sync to Claude Code signed into the same account (v2.1.273 or newer). Local CLI installs do not sync back to the account. Avoid enabling both a plugin and standalone copies of the same skills. See the [official Claude installation guide](https://support.claude.com/en/articles/13837440-use-plugins-in-claude).
+The plugin contains `html-visualizer`, `chart`, `diagram-design`, and `help`; separate uploads are unnecessary. Account-installed plugins sync to Claude Code signed into the same account (v2.1.273 or newer). Local CLI installs do not sync back to the account. Avoid enabling both a plugin and standalone copies of the same skills. See the [official Claude installation guide](https://support.claude.com/en/articles/13837440-use-plugins-in-claude).
 
 **Codex CLI supports plugins, but this repo does not yet provide a Codex marketplace configuration.** Supported versions use `codex plugin add <plugin>@<marketplace>`; this is not a ready-to-run installation command for this repository. Use the installer below for now: it installs standalone skills, not a plugin.
 
 **ChatGPT requires a separately packaged compatible private plugin.** This repository's `.claude-plugin/plugin.json` is not a ChatGPT package. Add a compatible manifest, retain the complete `skills/` and supporting files, then use the private-plugin upload flow. Local CLI installation does not sync to ChatGPT.
 
-**Standalone skill upload (alternative)**: upload three ZIPs under **Customize → Skills**. Run from `skills/`:
+**Standalone skill upload (alternative)**: upload four ZIPs under **Customize → Skills**. Run from `skills/`:
 
 ```bash
 zip -r html-visualizer.zip html-visualizer
 zip -r chart.zip chart
 zip -r diagram-design.zip diagram-design
+zip -r help.zip help
 ```
 
 These limits apply to standalone skill uploads, not the complete plugin: at most 200 description characters and 200 entries per skill ZIP. Run `python3 tests/check-frontmatter.py` after changing skills.
@@ -149,7 +150,11 @@ cd html-visualizer
 | `./install.sh --copy` | Copies instead of symlinking |
 | `./install.sh --uninstall` | Removes it |
 
-To update, run `git pull` in the cloned folder — no reinstall needed.
+The installer only touches what it installed: if a target already holds someone else's skill with the same name (or a symlink pointing elsewhere), it skips it with a warning and never overwrites or removes it.
+
+Installed this way, `help` is renamed to **`html-visualizer-help`** — `help` is too generic and can collide with other skills or a tool's built-in `/help`. Plugin installs are unaffected and keep `/html-visualizer:help`.
+
+To update, run `git pull` in the cloned folder — no reinstall needed (the `html-visualizer-help` SKILL.md is generated at install time; rerun `./install.sh` when it changes).
 
 Needs `python3` (3.8 or newer) on your machine.
 
@@ -194,13 +199,14 @@ No. Before showing you a page it checks the layout isn't broken, and that step n
 <details>
 <summary>Technical detail: what this actually does</summary>
 
-Three skills working together:
+Four skills working together:
 
 | Skill | Role |
 |---|---|
 | `html-visualizer` | The entry point. Picks a layout, builds the page, runs the self-check, opens it |
 | `chart` | Data charts, drawn with `@unovis`, sharing one palette across chart types |
 | `diagram-design` | Structure diagrams as hand-laid SVG. A fork of [cathrynlavery/diagram-design](https://github.com/cathrynlavery/diagram-design) v2.6 |
+| `help` | Usage guide (named `html-visualizer-help` when installed standalone via install.sh). Type `/html-visualizer:help`, or ask "how do I use html-visualizer / what can this skill do", to list what it makes, how to ask for each, and which style is currently applied |
 
 **Why not just ask the AI for HTML**: because AI-generated HTML fails silently, and the AI can't see it. So a self-check runs before the page reaches you. Every item maps to a real incident:
 

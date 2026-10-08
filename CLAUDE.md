@@ -1,6 +1,6 @@
 # CLAUDE.md — html-visualizer repo 規範
 
-三個 skill（`skills/html-visualizer`、`skills/chart`、`skills/diagram-design`）同時發布到兩種環境，限制以較嚴的那邊為準。
+四個 skill（`skills/html-visualizer`、`skills/chart`、`skills/diagram-design`、`skills/help`）同時發布到兩種環境，限制以較嚴的那邊為準。
 
 ## claude.ai / Cowork 上傳限制（動 skill 前先看這段）
 

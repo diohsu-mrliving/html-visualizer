@@ -1,6 +1,6 @@
 {
   "name": "html-visualizer",
-  "description": "Render long-form documents, reports, specs, decision sheets and diagrams as polished HTML for humans (AI reads Markdown, humans read HTML). Bundles three skills: html-visualizer, chart, diagram-design.",
+  "description": "Render long-form documents, reports, specs, decision sheets and diagrams as polished HTML for humans (AI reads Markdown, humans read HTML). Bundles four skills: html-visualizer, chart, diagram-design, help.",
   "version": "0.2.1-mrl.2",
   "author": {
     "name": "Jackle Chen",

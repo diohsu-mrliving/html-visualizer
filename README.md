@@ -82,7 +82,7 @@ AI 需要你拍板的事，每一題就放在它的說明旁邊，選項和補�
 
 ## 安裝
 
-**優先用 plugin 安裝**：一個安裝單位包含三個技能；各平台安裝入口與支援格式不同。只有需要單獨 skill 的工具，才用下方 installer。
+**優先用 plugin 安裝**：一個安裝單位包含四個技能；各平台安裝入口與支援格式不同。只有需要單獨 skill 的工具，才用下方 installer。
 
 **最簡單的方法**：把下面這行網址貼給你的 AI，跟它說「幫我安裝這個」。
 
@@ -106,7 +106,7 @@ https://github.com/diohsu-mrliving/html-visualizer
 
 用 `/plugin list` 確認裝好了。更新用 `/plugin update html-visualizer@diohsu-mrliving`，移除用 `/plugin uninstall html-visualizer@diohsu-mrliving`。
 
-**Claude App / claude.ai / Cowork：以一個 plugin 安裝三個技能。** 在 **Customize → Plugins** 上傳自訂 plugin ZIP。從 repo 根目錄打包：
+**Claude App / claude.ai / Cowork：以一個 plugin 安裝四個技能。** 在 **Customize → Plugins** 上傳自訂 plugin ZIP。從 repo 根目錄打包：
 
 ```bash
 git clone https://github.com/diohsu-mrliving/html-visualizer.git
@@ -114,18 +114,19 @@ cd html-visualizer
 zip -r ../html-visualizer-claude-plugin.zip .claude-plugin skills LICENSE
 ```
 
-plugin 內包含 `html-visualizer`、`chart`、`diagram-design`，不必分別上傳。帳號安裝會同步到同帳號的 Claude Code（需 v2.1.273 以上）；本機 CLI 安裝不會反向同步到帳號。請避免同時啟用 plugin 與另裝的同名 skill。[Claude 官方安裝說明](https://support.claude.com/en/articles/13837440-use-plugins-in-claude)。
+plugin 內包含 `html-visualizer`、`chart`、`diagram-design`、`help`，不必分別上傳。帳號安裝會同步到同帳號的 Claude Code（需 v2.1.273 以上）；本機 CLI 安裝不會反向同步到帳號。請避免同時啟用 plugin 與另裝的同名 skill。[Claude 官方安裝說明](https://support.claude.com/en/articles/13837440-use-plugins-in-claude)。
 
-**Codex CLI：支援 plugin，但本 repo 尚未提供 Codex marketplace 設定。** 支援的版本可用 `codex plugin add <plugin>@<marketplace>`，這不是本 repo 可直接執行的安裝指令。現在可用下方 installer 安裝三個 skill；它是 skill 安裝，不是 plugin 安裝。
+**Codex CLI：支援 plugin，但本 repo 尚未提供 Codex marketplace 設定。** 支援的版本可用 `codex plugin add <plugin>@<marketplace>`，這不是本 repo 可直接執行的安裝指令。現在可用下方 installer 安裝四個 skill；它是 skill 安裝，不是 plugin 安裝。
 
 **ChatGPT：需另提供 ChatGPT 相容的私人 plugin。** 本 repo 的 `.claude-plugin/plugin.json` 不能直接當成 ChatGPT 安裝包；需加入相容 manifest、保留完整 `skills/` 與支援檔案，再透過私人 plugin 上傳流程安裝。CLI 本機安裝不會自動同步到 ChatGPT。
 
-**單獨上傳 skill（替代方式）**：在 **Customize → Skills** 分別上傳三個 ZIP。從 `skills/` 目錄執行：
+**單獨上傳 skill（替代方式）**：在 **Customize → Skills** 分別上傳四個 ZIP。從 `skills/` 目錄執行：
 
 ```bash
 zip -r html-visualizer.zip html-visualizer
 zip -r chart.zip chart
 zip -r diagram-design.zip diagram-design
+zip -r help.zip help
 ```
 
 以下限制只針對單獨 skill 上傳，不要套用成整份 plugin 的限制：`description` 最多 200 字元、一個 skill ZIP 最多 200 個項目。改動 skill 後跑 `python3 tests/check-frontmatter.py` 檢查。
@@ -147,7 +148,11 @@ cd html-visualizer
 | `./install.sh --copy` | 用複製取代捷徑 |
 | `./install.sh --uninstall` | 移除 |
 
-更新的話，在下載回來的資料夾跑 `git pull` 就好，不用重裝。
+安裝腳本只動自己裝的東西：目標位置已經有別人的同名 skill（或指到別處的捷徑），會跳過並警告，不覆蓋、移除時也不刪。
+
+`help` 用這種方式安裝時改名為 **`html-visualizer-help`**——`help` 太通用，容易跟別人的 skill 或工具內建的 `/help` 撞名。plugin 安裝不受影響，仍是 `/html-visualizer:help`。
+
+更新的話，在下載回來的資料夾跑 `git pull` 就好，不用重裝（`html-visualizer-help` 的說明頁本文是安裝時產生的，它的 SKILL.md 有改時重跑一次 `./install.sh`）。
 
 需要電腦上有 `python3`（3.8 以上）。
 
@@ -192,13 +197,14 @@ cd html-visualizer
 <details>
 <summary>技術細節：這東西實際上在做什麼</summary>
 
-它是三個 skill 的組合：
+它是四個 skill 的組合：
 
 | Skill | 負責 |
 |---|---|
 | `html-visualizer` | 主要入口。挑版型、建頁、跑自檢、開給你看 |
 | `chart` | 資料圖表，用 `@unovis` 畫，各種圖表共用一套配色 |
 | `diagram-design` | 結構圖，手工排版的 SVG。[cathrynlavery/diagram-design](https://github.com/cathrynlavery/diagram-design) v2.6 的 fork |
+| `help` | 使用說明（用 install.sh 獨立安裝時名稱是 `html-visualizer-help`）。打 `/html-visualizer:help`，或問「html-visualizer 怎麼用／這個 skill 可以做什麼」時，列出能做什麼、每種怎麼開口，以及目前套用的風格 |
 
 **為什麼不是叫 AI 直接產 HTML 就好**：因為 AI 產的 HTML 會安靜地壞掉，而它自己看不到。所以在給你看之前會先跑一支自檢，每一項都對應一次真實事故：
 
