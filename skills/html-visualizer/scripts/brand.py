@@ -454,9 +454,13 @@ def tokens(ci):
     def tint(col, pct):  # CI 色階表有就照表，沒有（例如品牌藍換了值）就跟白色混
         return ci["tints"].get(col, {}).get(pct) or mix(col, white, 1 - pct / 100)
 
-    muted = _darken_until(greige, ink, white)          # 灰褐只當小標；一般弱化字要可讀
+    # 一般弱化字要可讀：對比量在品牌底色（比白深）上，白底卡片自然也過（上游 0.3 的小字對比檢查量的是實際底色）
+    muted = _darken_until(greige, ink, bg)
+    greige_ink = _darken_until(greige, ink, bg)        # 灰褐小標的字色：同色相加深到 ≥ 4.5:1；原色 --greige 只當線條、色塊
     st = status_colors(blue, promo, white)             # 好轉／注意／警示（推導；警示色暫代）
     green, yellow, red = st["green"], st["yellow"], st["red"]
+    green_ink = _darken_until(green[0], ink, bg)
+    yellow_ink = _darken_until(yellow[0], ink, bg)
     series = chart_series(ci)
     # 易混字形規則：CI 英文字型裡「1」像「I」的（Gill Sans）已在解析時跳過，這裡拿到的是下一順位
     font = ", ".join(css_str(f) for f in ci["fonts"]["stack"]) + ", sans-serif"
@@ -469,25 +473,25 @@ def tokens(ci):
         "--clay-d": mix(blue, "#000000", 0.2), "--accent-strong": mix(blue, "#000000", 0.2),
         "--oat": light,
         "--olive": brown,
-        "--greige": greige, "--greige-2": brown,
+        "--greige": greige, "--greige-2": brown, "--greige-ink": greige_ink,
         "--g100": tint(bg, 40), "--bg-soft": tint(bg, 40),
         "--g200": tint(greige, 20), "--bg-soft-2": tint(greige, 20),
         "--g300": tint(greige, 40), "--border": tint(greige, 40), "--line": tint(greige, 40),
         "--g500": muted, "--text-soft": muted, "--border-strong": muted,
         "--g700": mix(greige, ink, 0.75), "--text-muted": mix(greige, ink, 0.75),
         "--clay-soft": tint(light, 20), "--accent-soft": tint(light, 20), "--clay-border": light,
-        "--green": green[0], "--green-soft": green[1], "--green-border": green[2],
-        "--red": red[0], "--red-soft": red[1], "--red-border": red[2],
-        "--yellow": yellow[0], "--yellow-soft": yellow[1], "--yellow-border": yellow[2],
+        # --green／--red／--yellow 是字色（同 base-template：指到墨色），在品牌底色上也要 ≥ 4.5:1
+        "--green": green_ink, "--green-soft": green[1], "--green-border": green[2],
+        "--red": _darken_until(red[0], ink, bg), "--red-soft": red[1], "--red-border": red[2],
+        "--yellow": yellow_ink, "--yellow-soft": yellow[1], "--yellow-border": yellow[2],
         "--orange": yellow[0], "--orange-soft": yellow[1], "--orange-border": yellow[2],
         "--olive-soft": tint(brown, 20), "--olive-border": tint(brown, 40),
         "--purple": series[1], "--purple-soft": tint(greige, 20), "--purple-border": tint(greige, 40),
         "--blue": blue, "--blue-soft": tint(light, 20), "--blue-border": light,
         # 墨色（上游 0.3 起 24px 以下的字只用這組）：在品牌底色上 ≥ 4.5:1，不夠就往 INK 加深
         "--clay-ink": _darken_until(blue, ink, bg),
-        "--green-ink": _darken_until(green[0], ink, bg),
-        "--yellow-ink": _darken_until(yellow[0], ink, bg),
-        "--orange-ink": _darken_until(yellow[0], ink, bg),
+        "--green-ink": green_ink, "--yellow-ink": yellow_ink, "--orange-ink": yellow_ink,
+        "--blue-ink": _darken_until(blue, ink, tint(light, 20)),  # 藍字放在淺藍底（--blue-soft）上
         "--yellow-line": yellow[0],
         # slides 專用
         "--bg-glass": bg + "F5", "--bg-overlay": white + "A6", "--bg-dark": ink,

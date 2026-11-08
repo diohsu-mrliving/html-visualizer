@@ -15,8 +15,8 @@
 .vt-brand-lockup { display: flex; align-items: center; gap: var(--vt-logo-pad); }
 .vt-brand-sym { height: 44px; width: auto; display: block; }
 .vt-brand-word { height: 22px; width: auto; display: block; }
-.vt-brand-label { font-size: 12px; font-weight: 700; color: var(--greige); letter-spacing: 0.04em; text-align: right; }
-.vt-brand-auto { width: min(94vw, var(--wrap-max, 1760px)); margin: 0 auto; padding: 0 32px; }
+.vt-brand-label { font-size: 12px; font-weight: 700; color: var(--greige-ink); letter-spacing: 0.04em; text-align: right; }
+.vt-brand-auto { box-sizing: border-box; width: min(94vw, var(--wrap-max, 1760px)); max-width: 100%; margin: 0 auto; padding: 0 32px; }
 /* 頁尾 Logo＋Slogan（插槽 vt-brand:footer） */
 .vt-brand-foot { display: block; width: 72px; height: auto; margin: var(--vt-logo-foot-pad) 0; }
 .vt-brand-footwrap { border-top: 1px solid var(--vt-brand-rule); margin-top: 40px; }
@@ -54,13 +54,14 @@ html:not([data-layout]) .section-num {
   background: transparent; border: 0; border-radius: 0; box-shadow: none;
   width: 44px; height: auto; justify-content: flex-start; line-height: 1.2;
 }
-html:not([data-layout]) .sec-head .count { font-family: var(--num-font); background: transparent; color: var(--greige); font-weight: 700; padding: 0; }
+html:not([data-layout]) .sec-head .count { font-family: var(--num-font); background: transparent; color: var(--greige-ink); font-weight: 700; padding: 0; }
 html:not([data-layout]) nav.toc a .n, html:not([data-layout]) .toc a .n,
 html:not([data-layout]) .nav-link-num, html:not([data-layout]) .qmap-row .q-idx {
-  font-family: var(--num-font); color: var(--greige); background: transparent; border-radius: 0;
+  font-family: var(--num-font); color: var(--greige-ink); background: transparent; border-radius: 0;
 }
 
-/* 小標：粗體灰褐、無襯線（不用等寬字）。灰褐只當 12px 以上粗體小標；一般弱化字用 --g500（已加深到可讀） */
+/* 小標：粗體灰褐、無襯線（不用等寬字）。小標字色用 --greige-ink（灰褐同色相加深到在品牌底色 ≥ 4.5:1，過上游 0.3 的小字對比檢查）；
+   原色 --greige 只當線條與色塊。一般弱化字用 --g500（已加深到可讀） */
 html:not([data-layout]) .eyebrow,
 html:not([data-layout]) .stat-label, html:not([data-layout]) .mock-label,
 html:not([data-layout]) .myth .h, html:not([data-layout]) .reveal > summary .tag,
@@ -73,7 +74,7 @@ html:not([data-layout]) .adr-table th, html:not([data-layout]) .chip, html:not([
 }
 html:not([data-layout]) .eyebrow, html:not([data-layout]) .stat-label, html:not([data-layout]) .mock-label,
 html:not([data-layout]) .reveal > summary .tag, html:not([data-layout]) .layer .tag, html:not([data-layout]) .tokrow .k {
-  color: var(--greige); font-size: 12px;
+  color: var(--greige-ink); font-size: 12px;
 }
 html:not([data-layout]) .eyebrow { letter-spacing: 0.08em; font-size: 12px; }
 html:not([data-layout]) .eyebrow::before { background: var(--greige); }
@@ -109,7 +110,7 @@ html:not([data-layout]) nav.toc a, html:not([data-layout]) .toc a { border-width
 html:not([data-layout]) .badge { font-family: var(--sans); border-radius: 2px; letter-spacing: 0.02em; }
 html:not([data-layout]) .badge-clay { background: var(--clay-soft); border-color: var(--clay-border); }
 html:not([data-layout]) .inline-decide-head { font-family: var(--sans); font-weight: 700; border-radius: 2px; }
-html:not([data-layout]) table th { font-weight: 700; color: var(--greige); background: var(--paper); border-bottom: 1px solid var(--slate); }
+html:not([data-layout]) table th { font-weight: 700; color: var(--greige-ink); background: var(--paper); border-bottom: 1px solid var(--slate); }
 
 /* 範例頁寫死的暖色字（原生 Anthropic 配色）改吃語意變數 */
 html:not([data-layout]) .hl { background: linear-gradient(transparent 58%, var(--oat) 58%); }
@@ -120,7 +121,7 @@ html:not([data-layout]) .tree-node.degraded { color: var(--yellow); }
 
 /* 品牌藍只給重點：裝飾性的點、箭頭、左邊條改中性色 */
 html:not([data-layout]) .step::before { background: var(--slate); box-shadow: 0 0 0 1.5px var(--slate); }
-html:not([data-layout]) .reveal > summary::before { color: var(--greige); }
+html:not([data-layout]) .reveal > summary::before { color: var(--greige-ink); }
 html:not([data-layout]) .def-card { border-left-color: var(--slate); }
 
 html:not([data-layout]) footer.foot { border-top: 1px solid var(--vt-brand-rule); }
@@ -129,7 +130,7 @@ html:not([data-layout]) footer.foot .k { font-family: var(--sans); font-style: n
 /* ═══ 一頁版：版面不動；小標、標題、重點卡跟報告頁同一套 ═══ */
 html[data-layout="onepage"] .op-head .eyebrow,
 html[data-layout="onepage"] .op-side h2 {
-  font-family: var(--sans); font-weight: 700; color: var(--greige); letter-spacing: 0.08em;
+  font-family: var(--sans); font-weight: 700; color: var(--greige-ink); letter-spacing: 0.08em;
 }
 html[data-layout="onepage"] .op-head .eyebrow::before { background: var(--greige); }
 html[data-layout="onepage"] body .op-head h1 { font-family: var(--sans); font-weight: 700; letter-spacing: 0; line-height: 1.2; }
@@ -144,7 +145,9 @@ html[data-layout="onepage"] .op-foot .vt-brand-mark { height: 18px; margin: 0 0 
 
 /* ═══ 簡報：CI 一張藍色 2–3 處。藍只留給標題強調、大數字、圖表重點、表格重點列；
    其他裝飾（小標、圖示、條列點、完成節點）改中性色 ═══ */
-html[data-layout="slides"] .slide .eyebrow { color: var(--greige); font-family: var(--sans); font-weight: 700; }
+html[data-layout="slides"] .slide .eyebrow { color: var(--greige-ink); font-family: var(--sans); font-weight: 700; }
+/* 章節頁是深底：小標用原色灰褐（在 INK 底上 ≥ 4.5:1），加深版在深底上反而看不清 */
+html[data-layout="slides"] .slide[data-layout="section"] .eyebrow { color: var(--greige); }
 html[data-layout="slides"] .slide .icon { color: var(--slate); }
 html[data-layout="slides"] .bl-list > li::before { background: var(--bg-soft-2); color: var(--slate); }
 html[data-layout="slides"] .tl-item.is-done::before { background: var(--slate); border-color: var(--slate); }
