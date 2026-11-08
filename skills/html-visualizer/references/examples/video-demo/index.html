@@ -416,50 +416,50 @@
               <desc id="cache-desc">使用者的查詢先到快取。快取沒有答案，才去查資料庫。</desc>
               <defs>
                 <marker id="cache-arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
-                  <polygon points="0 0, 10 4, 0 8" fill="#87867f" />
+                  <polygon points="0 0, 10 4, 0 8" style="fill: var(--g500)" />
                 </marker>
                 <marker id="cache-arrow-accent" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
-                  <polygon points="0 0, 10 4, 0 8" fill="#b85c3e" />
+                  <polygon points="0 0, 10 4, 0 8" style="fill: var(--clay-d)" />
                 </marker>
               </defs>
-              <rect width="100%" height="100%" fill="#ffffff" />
+              <rect width="100%" height="100%" style="fill: var(--paper)" />
 
               <!-- 第 1 幕：使用者 → 快取 -->
               <g data-scene="1">
                 <g class="edge" data-from="user" data-to="cache" data-label="查詢">
-                  <path class="ln draw" pathLength="1" d="M 240,220 H 396" fill="none" stroke="#b85c3e" stroke-width="2.4" marker-end="url(#cache-arrow-accent)" />
+                  <path class="ln draw" pathLength="1" d="M 240,220 H 396" fill="none" stroke-width="2.4" marker-end="url(#cache-arrow-accent)" style="stroke: var(--clay-d)" />
                 </g>
                 <g class="elabel">
-                  <rect x="290" y="190" width="56" height="22" fill="#ffffff" />
+                  <rect x="290" y="190" width="56" height="22" style="fill: var(--paper)" />
                   <text x="318" y="206" text-anchor="middle">查詢</text>
                 </g>
               </g>
               <!-- 第 2 幕：快取 → 資料庫（沒有才查，虛線） -->
               <g data-scene="2">
                 <g class="edge" data-from="cache" data-to="db" data-label="沒有才查">
-                  <path class="ln" d="M 600,220 H 756" fill="none" stroke="#87867f" stroke-width="2" stroke-dasharray="6,5" marker-end="url(#cache-arrow)" />
+                  <path class="ln" d="M 600,220 H 756" fill="none" stroke-width="2" stroke-dasharray="6,5" marker-end="url(#cache-arrow)" style="stroke: var(--g500)" />
                 </g>
                 <g class="elabel">
-                  <rect x="636" y="190" width="84" height="22" fill="#ffffff" />
+                  <rect x="636" y="190" width="84" height="22" style="fill: var(--paper)" />
                   <text x="678" y="206" text-anchor="middle">沒有才查</text>
                 </g>
               </g>
 
               <g data-scene="1">
                 <g class="node" data-id="user" data-kind="external" data-title="使用者" transform="translate(40,160)">
-                  <rect class="box" width="200" height="120" rx="8" fill="#ffffff" stroke="#87867f" stroke-width="1.5" />
+                  <rect class="box" width="200" height="120" rx="8" stroke-width="1.5" style="fill: var(--paper); stroke: var(--g500)" />
                   <text x="100" y="52" class="n" text-anchor="middle">使用者</text>
                   <text x="100" y="84" text-anchor="middle">送出查詢</text>
                 </g>
                 <g class="node" data-id="cache" data-kind="ours" data-title="快取" transform="translate(400,160)">
-                  <rect class="box" width="200" height="120" rx="8" fill="#fbe9df" stroke="#d97757" stroke-width="1.5" />
+                  <rect class="box" width="200" height="120" rx="8" stroke-width="1.5" style="fill: var(--accent-soft); stroke: var(--clay)" />
                   <text x="100" y="52" class="n" text-anchor="middle">快取</text>
                   <text x="100" y="84" text-anchor="middle">常用答案</text>
                 </g>
               </g>
               <g data-scene="2">
                 <g class="node" data-id="db" data-kind="store" data-title="資料庫" transform="translate(760,160)">
-                  <rect class="box" width="200" height="120" rx="8" fill="#ffffff" stroke="#141413" stroke-width="1.5" />
+                  <rect class="box" width="200" height="120" rx="8" stroke-width="1.5" style="fill: var(--paper); stroke: var(--slate)" />
                   <text x="100" y="52" class="n" text-anchor="middle">資料庫</text>
                   <text x="100" y="84" text-anchor="middle">完整資料</text>
                 </g>
@@ -471,8 +471,8 @@
                 <text x="500" y="372" class="accent" text-anchor="middle">約 40 毫秒</text>
                 <text x="860" y="340" class="n" text-anchor="middle">查資料庫</text>
                 <text x="860" y="372" text-anchor="middle">約 800 毫秒</text>
-                <path d="M 420,420 H 448" fill="none" stroke="#d97757" stroke-width="10" stroke-linecap="round" />
-                <path d="M 420,450 H 980" fill="none" stroke="#87867f" stroke-width="10" stroke-linecap="round" />
+                <path d="M 420,420 H 448" fill="none" stroke-width="10" stroke-linecap="round" style="stroke: var(--clay)" />
+                <path d="M 420,450 H 980" fill="none" stroke-width="10" stroke-linecap="round" style="stroke: var(--g500)" />
                 <text x="400" y="426" text-anchor="end">快取</text>
                 <text x="400" y="456" text-anchor="end">資料庫</text>
               </g>
