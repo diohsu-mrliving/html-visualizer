@@ -229,6 +229,13 @@ class TestChartAndBlue(Base):
             self.assertNotEqual(t[f"--chart-{i}"], "#1865FF")
             self.assertGreater(brand.delta_e(t[f"--chart-{i}"], "#1865FF"), 40)
 
+    def test_ink_tokens_readable_on_brand_bg(self):
+        # 上游 0.3 的範本小字改用墨色 token；mrl 主題要給值，否則會留著 Anthropic 的赤陶墨色
+        t = brand.tokens(brand.resolve()["ci"])
+        for k in ("--clay-ink", "--green-ink", "--yellow-ink", "--orange-ink"):
+            self.assertIn(k, t)
+            self.assertGreaterEqual(brand.contrast(t[k], t["--ivory"]), 4.5, k)
+
     def test_overlay_has_no_hex(self):
         with open(brand.OVERLAY_CSS, encoding="utf-8") as f:
             css = f.read()

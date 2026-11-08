@@ -483,6 +483,12 @@ def tokens(ci):
         "--olive-soft": tint(brown, 20), "--olive-border": tint(brown, 40),
         "--purple": series[1], "--purple-soft": tint(greige, 20), "--purple-border": tint(greige, 40),
         "--blue": blue, "--blue-soft": tint(light, 20), "--blue-border": light,
+        # 墨色（上游 0.3 起 24px 以下的字只用這組）：在品牌底色上 ≥ 4.5:1，不夠就往 INK 加深
+        "--clay-ink": _darken_until(blue, ink, bg),
+        "--green-ink": _darken_until(green[0], ink, bg),
+        "--yellow-ink": _darken_until(yellow[0], ink, bg),
+        "--orange-ink": _darken_until(yellow[0], ink, bg),
+        "--yellow-line": yellow[0],
         # slides 專用
         "--bg-glass": bg + "F5", "--bg-overlay": white + "A6", "--bg-dark": ink,
         "--on-dark-text": white, "--on-dark-muted": light, "--on-dark-accent": light,
