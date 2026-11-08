@@ -58,3 +58,6 @@
 - 寬度 < 1100px（手機、平板）自動退回一般捲動頁：一頁的承諾只對桌機與影片。
 - 骨架用 `min-height: 100vh` 不用 `height`：內容放不下時頁面會變長，`onepage-check` 量得到；用 `height` 會互相蓋住、量不出來。
 - 評論、Session 識別、風格設定與 base-template 相同，照常運作。
+- **樣式全寫在頁內**（2026-11 起不載入 Tailwind CDN，同 base-template）：頁首一段「頁內歸零」取代原本外部框架的重置，離線開檔外觀也一樣。
+- **易讀規則照 base-template**：24px 以下的字只用墨色 token（`--text-soft`／`--clay-ink`…，在米白底 ≥ 4.5:1；`--clay`、`--g500` 只當填色與邊框）；標題用 `word-break: keep-all`，長標題把語意片段包成 `<span class="ph">`；列印／存 PDF 時場景模式的淡入一律現形；圖示用 lucide SVG，不用 emoji。
+- **不放底部回傳列**：一頁版是 1920×1080 一個畫面、要投影或出影片，固定在底部的列會蓋掉最下面一截，也會進投影與錄影。讀者照樣反白留言，留言清單的「複製留言」就是回傳給 AI 的管道；`verify.py` 對 `data-layout="onepage"` 只要求反白留言。

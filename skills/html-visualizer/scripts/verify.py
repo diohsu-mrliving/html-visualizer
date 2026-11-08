@@ -770,7 +770,9 @@ def main(path):
     # ── 純展示 ───────────────────────────────────
     else:
         head("純展示骨架")
-        long_doc = len(h) > 40000 and not is_slides
+        # 一頁版、簡報不算長文件：一個畫面放完／一張一個重點，篇幅大多是內建的留言工具與場景引擎
+        is_onepage = bool(re.search(r'<html[^>]*\bdata-layout="onepage"', h))
+        long_doc = len(h) > 40000 and not is_slides and not is_onepage
         # class 清單含完整的 reveal 即可（例：class="reveal rv"）；reveal-x 這類不算
         has_reveal = re.search(r'class="(?:[^"]*\s)?reveal(?:\s[^"]*)?"', h) is not None
         if long_doc:
@@ -778,6 +780,8 @@ def main(path):
                    "" if has_reveal else "細節應收進 <details class=\"reveal\">")
         elif is_slides:
             report(SKIP, "簡報不用漸進揭露", "一張一個重點；細節放講者備註（.notes）")
+        elif is_onepage:
+            report(SKIP, "一頁版不用漸進揭露", "一個畫面放完；細節另做一般頁")
         else:
             report(SKIP, "篇幅不長，漸進揭露非必要")
 
@@ -973,7 +977,13 @@ def main(path):
     # 評審實測：教學頁拿掉了評論系統、規格頁只有頁尾一顆按鈕，讀者讀完有意見只能另開對話打字
     has_bar = 'class="sticky-bar' in h_markup and 'id="preview-btn"' in h_markup and 'id="copy-btn"' in h_markup
     has_comments = "vtCollectComments" in h
-    if has_bar and has_comments:
+    # 一頁版、簡報是全螢幕版型（1920×1080 一個畫面、投影、出影片）：固定在底部的回傳列會蓋掉畫面最下面一截，
+    # 也會跟著進投影與錄影。這兩種只要求反白留言；留言清單的「複製留言」就是回傳管道（references/onepage.md、slides.md）
+    fullscreen = re.search(r'<html[^>]*\bdata-layout="(onepage|slides)"', h)
+    if fullscreen and has_comments and not has_bar:
+        report(OK, "反白留言（全螢幕版型不放回傳列）",
+               "一頁版／簡報不放底部回傳列（會蓋住 1920×1080 畫面）；留言清單可一鍵複製給 AI")
+    elif has_bar and has_comments:
         report(OK, "回傳列＋反白留言", "底部列有預覽與複製，全頁評論已內建")
     else:
         miss = [x for x, ok in (("底部回傳列（sticky-bar＋preview-btn＋copy-btn）", has_bar), ("全頁評論系統", has_comments)) if not ok]

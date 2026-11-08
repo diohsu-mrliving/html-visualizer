@@ -38,6 +38,8 @@ HTML（data-scene + #video-scenes）
 - 畫線：路徑加 `pathLength="1" class="draw"`，進場時從頭畫到尾（虛線不要加，會變實線）
 - 當前幕加重：`.scene-now .box` 換 clay 色框，視線跟著旁白走
 
+列印／存 PDF 時，場景模式下還沒出現的幕一律現形（範本的 `@media print` 已寫好），靜態稿不會缺字。
+
 動畫只用 CSS transition／animation。**不要用 JS 計時器或 requestAnimationFrame 做動畫**——錄影靠暫停 CSS 動畫逐格截圖，JS 動畫錄不到、或錄出來每次不一樣。
 
 ## 3b1b 寫法規則

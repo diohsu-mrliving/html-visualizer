@@ -4,8 +4,67 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>簡報範本：結帳改版成果（10 種版型示範）</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 空 favicon：不加的話瀏覽器每次開頁都去要 /favicon.ico、主控台留一筆 404 -->
+    <link rel="icon" href="data:," />
     <style>
+      /* ── 頁內歸零（2026-11 拿掉 Tailwind CDN 後補上：原本靠它的 preflight 歸零，外觀照舊）── */
+      *,
+      ::before,
+      ::after {
+        box-sizing: border-box;
+        border-width: 0;
+        border-style: solid;
+      }
+      h1, h2, h3, h4, h5, h6 {
+        font-size: inherit;
+        font-weight: inherit;
+      }
+      h1, h2, h3, h4, h5, h6, p, blockquote, figure, dl, dd, pre, hr {
+        margin: 0;
+      }
+      ol, ul, menu {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      a {
+        color: inherit;
+        text-decoration: inherit;
+      }
+      b, strong {
+        font-weight: bolder;
+      }
+      small {
+        font-size: 80%;
+      }
+      table {
+        border-collapse: collapse;
+        border-color: inherit;
+        text-indent: 0;
+      }
+      button, input, select, textarea {
+        font: inherit;
+        letter-spacing: inherit;
+        color: inherit;
+        margin: 0;
+        padding: 0;
+      }
+      button {
+        background-color: transparent;
+        background-image: none;
+        cursor: pointer;
+      }
+      img, svg, video, canvas {
+        display: block;
+        vertical-align: middle;
+      }
+      img, video {
+        max-width: 100%;
+        height: auto;
+      }
+      [hidden] {
+        display: none;
+      }
       /* ════════════════════════════════════════════════════════════ */
       /* 簡報模式（slides）— 每張 1920×1080，一張一個重點、不捲動。    */
       /* 規則見 references/slides.md；10 種版型 = section[data-layout] */
@@ -33,8 +92,8 @@
         --border-strong: #8caaa4;
         /* 文字 */
         --text:          #173238;
-        --text-muted:    #647477;
-        --text-soft:     #647477;
+        --text-muted:    #566669;   /* 小字墨色：在所有 *-soft 底上都 ≥ 4.5:1（舊值 #647477 只有 3.9–4.4） */
+        --text-soft:     #566669;
         /* 主強調 */
         --accent:        #167765;
         --accent-soft:   #e2f0e6;
@@ -52,6 +111,7 @@
         --orange:        #b84d2c;
         --orange-soft:   #fce9dd;
         --orange-border: #eac3af;
+        --orange-ink:    #a8452a;   /* 橘色當小字用這個：--orange 在 orange-soft 底只有 4.3:1 */
         --blue:          #356794;
         --blue-soft:     #eaf0f6;
         --blue-border:   #c5d3de;
@@ -94,6 +154,10 @@
         --g300: var(--border);
         --g500: var(--text-soft);
         --g700: var(--text-muted);
+        /* 評論工具的墨色 token（同 base-template 的名字） */
+        --clay-ink: var(--accent-strong);
+        --green-ink: var(--green);
+        --yellow-ink: #856918;
       }
 
       /* ── 基礎 ── */
@@ -109,7 +173,7 @@
         background: var(--deck-backdrop);
         color: var(--text);
         font-family: var(--font-body);
-        line-height: 1.55;
+        line-height: 1.5; /* 舊版寫 1.55，但 Tailwind 的歸零蓋掉它、實際一直是 1.5；拿掉 Tailwind 後照實際值寫 */
         -webkit-font-smoothing: antialiased;
         font-synthesis: none;
       }
@@ -188,13 +252,18 @@
         padding: 2px 13px;
       }
       .slide .pending {
-        color: var(--orange);
+        color: var(--orange-ink);
       }
-      /* 選擇器比 Tailwind preflight 高一級（理由見 base-template） */
+      /* 中文標題：只在標點、空白與 .ph 片段之間換行，不把詞切開；整串沒斷點才硬斷（同 base-template） */
       .slide h1,
       .slide h2,
       .slide h3 {
         font-family: var(--font-heading);
+        word-break: keep-all;
+        overflow-wrap: anywhere;
+      }
+      .slide .ph {
+        display: inline-block;
       }
       .slide h1,
       .slide h2 {
@@ -221,7 +290,7 @@
       .slide .lead {
         color: var(--text-muted);
         font-size: 24px;
-        max-width: 1330px;
+        max-width: min(1330px, 72ch); /* 行長護欄：兩行以上的字 ≤ 72ch */
         margin-bottom: 36px;
       }
       .slide .footer {
@@ -446,7 +515,7 @@
         color: var(--text-muted);
       }
       .slide .flow-note b {
-        color: var(--orange);
+        color: var(--orange-ink);
       }
 
       /* ════ 版型 1：封面 cover ════ */
@@ -693,7 +762,7 @@
         border-color: var(--orange-border);
       }
       .tl-item.is-now .number {
-        color: var(--orange);
+        color: var(--orange-ink);
       }
       .slide .tl-item h3 {
         font-size: 27px;
@@ -877,7 +946,7 @@
         margin: 6px 0 0;
       }
       .cl-list .number {
-        color: var(--orange);
+        color: var(--orange-ink);
       }
 
       /* ════ 進場動畫：一張 slide 出現時，區塊依序淡入上移 ════
@@ -1800,6 +1869,7 @@
         window.__chartsReady = true;
       }
     </script>
+    <!-- vt-comment:start（全頁評論系統整段，範例頁用腳本從這行替換到 vt-comment:end）-->
     <!-- ═══════════════════════════════════════════════════════ -->
     <!-- 全頁評論系統 — 預設內建、可手動移除                       -->
     <!-- 完整 snippet 見 references/interaction-patterns.md       -->
@@ -1814,7 +1884,7 @@
         border-radius: 999px;
         padding: 6px 12px;
         font-size: 12px;
-        color: var(--clay);
+        color: var(--clay-ink, #a64b2e);
         font-family: var(--mono);
         cursor: pointer;
         box-shadow: 0 4px 12px rgba(20, 20, 19, 0.12);
@@ -1824,7 +1894,7 @@
         transition: all 0.15s;
       }
       .vt-comment-trigger:hover {
-        background: var(--clay);
+        background: var(--clay-d, #b85c3e);
         color: var(--paper);
       }
       .vt-comment-popup {
@@ -1870,14 +1940,14 @@
         justify-content: space-between;
         align-items: center;
         margin-top: 10px;
-        font-size: 11.5px;
+        font-size: 12px;
       }
       .vt-comment-popup .hint {
-        color: var(--g500);
+        color: var(--text-soft);
         font-family: var(--mono);
       }
       .vt-comment-popup button.send {
-        background: var(--clay);
+        background: var(--clay-d, #b85c3e);
         color: var(--paper);
         border: none;
         border-radius: 8px;
@@ -1887,12 +1957,12 @@
         cursor: pointer;
       }
       .vt-comment-popup button.send:hover {
-        background: var(--clay-d);
+        background: var(--clay-ink, #a64b2e);
       }
       .vt-comment-popup button.cancel {
         background: transparent;
         border: 1px solid var(--g300);
-        color: var(--g500);
+        color: var(--text-soft);
         border-radius: 8px;
         padding: 6px 12px;
         font-size: 12.5px;
@@ -1908,6 +1978,11 @@
       mark.vt-comment-mark:hover {
         background: #d5c4a8;
       }
+      /* 從清單點過來時短暫亮一下，讀者知道是哪一段 */
+      mark.vt-comment-mark.is-flash {
+        background: #f7d9a0;
+        box-shadow: 0 0 0 3px #f7d9a0;
+      }
       .vt-comment-pill {
         position: fixed;
         right: 16px;
@@ -1919,7 +1994,7 @@
         padding: 8px 14px;
         font-family: var(--mono);
         font-size: 12px;
-        color: var(--clay);
+        color: var(--clay-ink, #a64b2e);
         cursor: pointer;
         box-shadow: 0 4px 12px rgba(20, 20, 19, 0.1);
         display: none;
@@ -1931,7 +2006,7 @@
         display: inline-flex;
       }
       .vt-comment-pill:hover {
-        background: var(--clay);
+        background: var(--clay-d, #b85c3e);
         color: var(--paper);
       }
       .vt-comment-pill strong {
@@ -1955,16 +2030,38 @@
         display: flex;
       }
       .vt-comment-list-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
         background: var(--paper);
         border-bottom: 1.5px solid var(--g200);
         padding: 12px 16px;
         font-family: var(--mono);
-        font-size: 11px;
+        font-size: 12px;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        color: var(--g500);
+        color: var(--text-soft);
         font-weight: 600;
         border-radius: 14px 14px 0 0;
+      }
+      .vt-list-close {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        margin: -8px -8px -8px 0;
+        padding: 0;
+        background: none;
+        border: 0;
+        border-radius: 8px;
+        color: var(--g700);
+        cursor: pointer;
+      }
+      .vt-list-close:hover {
+        background: var(--g100);
+        color: var(--slate);
       }
       .vt-comment-list-items {
         overflow-y: auto;
@@ -1977,14 +2074,38 @@
       .vt-comment-item:last-child {
         border-bottom: none;
       }
+      /* 引文：正體、12px、墨色。找得回原文的是按鈕（點了捲過去），找不回的標「原文已變動」 */
       .vt-comment-item .item-quote {
-        font-size: 11.5px;
-        color: var(--g500);
-        font-style: italic;
+        display: block;
+        width: 100%;
+        text-align: left;
+        font: inherit;
+        font-size: 12px;
+        color: var(--text-soft);
+        font-style: normal;
+        background: none;
+        border: 0;
         border-left: 2px solid var(--oat);
-        padding-left: 8px;
-        line-height: 1.4;
+        padding: 0 0 0 8px;
+        line-height: 1.45;
         margin-bottom: 6px;
+      }
+      button.item-quote {
+        cursor: pointer;
+      }
+      button.item-quote:hover {
+        color: var(--slate);
+        border-left-color: var(--clay);
+      }
+      .vt-comment-item .item-lost {
+        display: inline-block;
+        margin-left: 6px;
+        padding: 0 7px;
+        font-size: 12px;
+        color: var(--yellow-ink);
+        background: var(--yellow-soft);
+        border-radius: 999px;
+        white-space: nowrap;
       }
       .vt-comment-item .item-body {
         font-size: 13px;
@@ -1992,8 +2113,8 @@
         line-height: 1.5;
       }
       .vt-comment-item .item-del {
-        font-size: 11px;
-        color: var(--g500);
+        font-size: 12px;
+        color: var(--text-soft);
         background: none;
         border: none;
         cursor: pointer;
@@ -2028,23 +2149,23 @@
         color: var(--slate);
       }
       .vt-comment-list-footer button.copy {
-        background: var(--clay);
+        background: var(--clay-d, #b85c3e);
         color: var(--paper);
-        border-color: var(--clay);
+        border-color: var(--clay-d, #b85c3e);
       }
       .vt-comment-list-footer button.copy:hover {
-        background: var(--clay-d);
+        background: var(--clay-ink, #a64b2e);
       }
       body.vt-has-existing-export .vt-comment-list-footer button.copy {
         display: none;
       }
     </style>
-    <button class="vt-comment-trigger" id="vt-comment-trigger">💬 評論</button>
+    <button class="vt-comment-trigger" id="vt-comment-trigger"><svg class="ic" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:inline-block;vertical-align:-0.125em"><path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"/></svg> 留言</button>
     <div class="vt-comment-popup" id="vt-comment-popup">
       <div class="quote" id="vt-popup-quote"></div>
       <textarea
         id="vt-popup-textarea"
-        placeholder="對這段文字的評論 / 疑問 / 補充..."
+        placeholder="對這段文字的留言：疑問、補充、不同意的地方…"
       ></textarea>
       <div class="actions">
         <span class="hint">⌘ + Enter 送出 · Esc 取消</span>
@@ -2055,14 +2176,17 @@
       </div>
     </div>
     <button class="vt-comment-pill" id="vt-comment-pill">
-      💬 <strong id="vt-count">0</strong>
+      <svg class="ic" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:inline-block;vertical-align:-0.125em"><path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"/></svg> <strong id="vt-count">0</strong>
     </button>
     <div class="vt-comment-list" id="vt-comment-list">
-      <div class="vt-comment-list-header">— 我的評論</div>
+      <div class="vt-comment-list-header">
+        <span>我的留言</span>
+        <button type="button" class="vt-list-close" id="vt-list-close" aria-label="關閉留言清單"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg></button>
+      </div>
       <div class="vt-comment-list-items" id="vt-comment-list-items"></div>
       <div class="vt-comment-list-footer">
         <button id="vt-clear-all">全部清除</button>
-        <button class="copy" id="vt-copy-fallback">📋 複製評論</button>
+        <button class="copy" id="vt-copy-fallback"><svg class="ic" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:inline-block;vertical-align:-0.125em"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg> 複製留言</button>
       </div>
     </div>
     <!-- ═══════════════════════════════════════════════════════ -->
@@ -2165,6 +2289,32 @@
               .join("\n\n")
           );
         };
+        const UI = ".vt-comment-popup,.vt-comment-trigger,.vt-comment-pill,.vt-comment-list";
+        // 讀目前的選取：不到 2 個字、焦點在表單欄位裡、或選在留言介面裡就回 null
+        function rs() {
+          const s = getSelection(),
+            t = s.toString().trim();
+          if (!t || t.length < 2 || !s.rangeCount) return null;
+          // 在補充框、留言框裡選字（編輯自己打的字）不算：Chrome 的選取會回傳框內文字，錨點卻在框外
+          if (document.activeElement && document.activeElement.matches("input,textarea,select")) return null;
+          // 在留言清單或留言框裡選字不算：否則會對清單裡的引文再留一則言（第 4 輪複查補回）
+          const a = s.anchorNode,
+            ae = a && (a.nodeType === 1 ? a : a.parentElement);
+          if (ae && ae.closest(UI)) return null;
+          return { text: t, range: s.getRangeAt(0).cloneRange() };
+        }
+        function sh() {
+          const x = rs();
+          if (!x) {
+            tr.style.display = "none";
+            return;
+          }
+          sel = x;
+          const b = x.range.getBoundingClientRect();
+          tr.style.display = "inline-flex";
+          tr.style.top = Math.max(8, b.top - 38) + "px";
+          tr.style.left = Math.max(8, b.left + b.width / 2 - 40) + "px";
+        }
         function hs(e) {
           if (
             e.target.closest(
@@ -2172,25 +2322,24 @@
             )
           )
             return;
-          setTimeout(() => {
-            const s = getSelection(),
-              t = s.toString().trim();
-            if (!t || t.length < 2) {
-              tr.style.display = "none";
-              return;
-            }
-            const r = s.getRangeAt(0),
-              b = r.getBoundingClientRect();
-            sel = { text: t, range: r.cloneRange() };
-            tr.style.display = "inline-flex";
-            tr.style.top = Math.max(8, b.top - 38) + "px";
-            tr.style.left = Math.max(8, b.left + b.width / 2 - 40) + "px";
-          }, 10);
+          setTimeout(sh, 10);
         }
         document.addEventListener("mouseup", hs);
         document.addEventListener("touchend", hs);
+        // § selectionchange：手機拖選取把手不一定送 touchend，選取一變就重算留言鈕（防抖 150ms）
+        let sw;
+        document.addEventListener("selectionchange", () => {
+          clearTimeout(sw);
+          // 留言框開著時不動：讀者在框外又選了別段，送出時要存的還是框上那段引文（第 4 輪複查補回）
+          sw = setTimeout(() => {
+            if (p.style.display !== "block") sh();
+          }, 150);
+        });
         tr.addEventListener("click", op);
         function op() {
+          // 按下當下重讀選取：防抖期間選取又改過時，以按下那一刻為準
+          const x = rs();
+          if (x) sel = x;
           if (!sel) return;
           const q = sel.text.length > L ? sel.text.slice(0, L) + "…" : sel.text;
           pq.textContent = q;
@@ -2225,14 +2374,18 @@
           const b = pt.value.trim();
           if (!b || !sel) return cp();
           const id = "c-" + Date.now(),
-            q = sel.text;
+            q = sel.text,
+            x = { id, quote: q, body: b, ts: Date.now() };
           try {
             const m = document.createElement("mark");
             m.className = "vt-comment-mark";
             m.dataset.commentId = id;
             sel.range.surroundContents(m);
-          } catch (e) {}
-          c.push({ id, quote: q, body: b, ts: Date.now() });
+          } catch (e) {
+            // 選取跨了元素（粗體、徽章、連結）：surroundContents 包不了，改成逐個文字節點各包一段
+            if (!wr(sel.range, id)) x.nomark = 1; // 一段都包不了才不標；清單照列，但不能標成「原文已變動」
+          }
+          c.push(x);
           ps();
           rn();
           cp();
@@ -2240,6 +2393,94 @@
         }
         function ps() {
           localStorage.setItem(S, JSON.stringify(c));
+        }
+        const mk = (id) =>
+          document.querySelector(`mark.vt-comment-mark[data-comment-id="${id}"]`);
+        // § 跨元素標記：一則留言可以有好幾個 mark（同一個 data-comment-id），每個文字節點各包一段。
+        //   只有空白的片段不包（表格列之間的換行包了 mark 會讓表格結構出錯）
+        function wp(n, a, b, id) {
+          if (a >= b || !n.nodeValue.slice(a, b).trim()) return 0;
+          const r = document.createRange();
+          r.setStart(n, a);
+          r.setEnd(n, b);
+          const e = document.createElement("mark");
+          e.className = "vt-comment-mark";
+          e.dataset.commentId = id;
+          r.surroundContents(e);
+          return 1;
+        }
+        const tws = (root) =>
+          document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+            acceptNode: (n) =>
+              n.parentElement &&
+              !n.parentElement.closest(
+                "script,style,.vt-comment-popup,.vt-comment-trigger,.vt-comment-pill,.vt-comment-list",
+              )
+                ? NodeFilter.FILTER_ACCEPT
+                : NodeFilter.FILTER_REJECT,
+          });
+        // 把一個跨元素的選取範圍逐節點包起來；回傳包了幾段
+        function wr(range, id) {
+          const root = range.commonAncestorContainer,
+            ns = [];
+          if (root.nodeType === 3) ns.push(root);
+          else for (let n, w = tws(root); (n = w.nextNode()); ) if (range.intersectsNode(n)) ns.push(n);
+          let k = 0;
+          ns.forEach((n) => {
+            const a = n === range.startContainer ? range.startOffset : 0,
+              b = n === range.endContainer ? range.endOffset : n.nodeValue.length;
+            k += wp(n, a, b, id);
+          });
+          return k;
+        }
+        // 重新整理後標記會消失（只存了引文）：依引文在內文找回位置再包一次。
+        // 只找單一文字節點內的引文；空白不計較（原始碼換行縮排 vs 選取時的單一空格）
+        function ra(x) {
+          if (mk(x.id)) return;
+          const w = x.quote.trim().split(/\s+/).filter(Boolean);
+          if (!w.length) return;
+          const re = new RegExp(
+            w.map((s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("\\s+"),
+          );
+          const tw = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+            acceptNode: (n) =>
+              n.parentElement &&
+              !n.parentElement.closest(
+                "script,style,.vt-comment-popup,.vt-comment-trigger,.vt-comment-pill,.vt-comment-list",
+              )
+                ? NodeFilter.FILTER_ACCEPT
+                : NodeFilter.FILTER_REJECT,
+          });
+          for (let n; (n = tw.nextNode()); ) {
+            const m = re.exec(n.nodeValue);
+            if (!m) continue;
+            const r = document.createRange();
+            r.setStart(n, m.index);
+            r.setEnd(n, m.index + m[0].length);
+            const e = document.createElement("mark");
+            e.className = "vt-comment-mark";
+            e.dataset.commentId = x.id;
+            r.surroundContents(e);
+            return;
+          }
+          // 單一文字節點找不到：把文字節點串起來再找（引文跨了粗體、徽章、連結），找到後逐段包回。
+          // 跨元素時選取文字在元素交界可能多一個換行、也可能沒有，所以詞與詞之間空白可有可無
+          const all = [];
+          let txt = "";
+          for (let n, w = tws(document.body); (n = w.nextNode()); ) {
+            all.push([n, txt.length]);
+            txt += n.nodeValue;
+          }
+          const re2 = new RegExp(
+            w.map((s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("\\s*"),
+          );
+          const m2 = re2.exec(txt);
+          if (!m2) return;
+          const st = m2.index,
+            en = st + m2[0].length;
+          all
+            .filter(([n, o]) => o < en && o + n.nodeValue.length > st)
+            .forEach(([n, o]) => wp(n, Math.max(0, st - o), Math.min(n.nodeValue.length, en - o), x.id));
         }
         function rn() {
           ce.textContent = c.length;
@@ -2249,12 +2490,28 @@
             .map((x) => {
               const q =
                 x.quote.length > 60 ? x.quote.slice(0, 60) + "…" : x.quote;
-              return `<div class="vt-comment-item" data-id="${eh(x.id)}"><div class="item-quote">「${eh(q)}」</div><div class="item-body">${eh(x.body)}</div><button class="item-del" data-del="${eh(x.id)}">刪除</button></div>`;
+              const quote = mk(x.id)
+                ? `<button type="button" class="item-quote" data-jump="${eh(x.id)}" title="捲到這段">「${eh(q)}」</button>`
+                : `<div class="item-quote">「${eh(q)}」${x.nomark ? "" : '<span class="item-lost">原文已變動</span>'}</div>`;
+              return `<div class="vt-comment-item" data-id="${eh(x.id)}">${quote}<div class="item-body">${eh(x.body)}</div><button class="item-del" data-del="${eh(x.id)}">刪除</button></div>`;
             })
             .join("");
           li.querySelectorAll("[data-del]").forEach((b) =>
             b.addEventListener("click", () => dc(b.dataset.del)),
           );
+          li.querySelectorAll("[data-jump]").forEach((b) =>
+            b.addEventListener("click", () => jp(b.dataset.jump)),
+          );
+        }
+        // 清單點引文：捲到那段、短暫高亮；手機上清單會蓋住內文，捲過去時順手收起
+        function jp(id) {
+          const m = mk(id);
+          if (!m) return;
+          m.scrollIntoView({ block: "center" });
+          const ms = document.querySelectorAll(`mark.vt-comment-mark[data-comment-id="${id}"]`);
+          ms.forEach((e) => e.classList.add("is-flash"));
+          setTimeout(() => ms.forEach((e) => e.classList.remove("is-flash")), 1600);
+          if (innerWidth <= 640) le.classList.remove("is-open");
         }
         function dc(id) {
           c = c.filter((x) => x.id !== id);
@@ -2283,9 +2540,17 @@
           );
         }
         pi.addEventListener("click", () => le.classList.toggle("is-open"));
+        // 清單關閉：右上關閉鈕、Esc
+        $("vt-list-close").addEventListener("click", () => le.classList.remove("is-open"));
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") le.classList.remove("is-open");
+        });
+        // 有回傳列時，清單底緣跟著列高（列在手機與拍板頁會變高），不要壓到列
+        const bar = document.querySelector(".sticky-bar");
+        if (bar) new ResizeObserver(() => (le.style.bottom = bar.getBoundingClientRect().height + 12 + "px")).observe(bar);
         $("vt-clear-all").addEventListener("click", () => {
           if (!c.length) return;
-          if (!confirm("確定清除全部 " + c.length + " 條評論？")) return;
+          if (!confirm("確定清除全部 " + c.length + " 則留言？")) return;
           document.querySelectorAll("mark.vt-comment-mark").forEach((m) => {
             const pr = m.parentNode;
             while (m.firstChild) pr.insertBefore(m.firstChild, m);
@@ -2300,16 +2565,16 @@
           if (!c.length) return;
           const t = window.vtCollectComments().replace(/^\n\n---\n\n/, ""),
             b = e.currentTarget,
-            o = b.textContent;
+            o = b.innerHTML; // innerHTML：按鈕裡有 SVG 圖示，用 textContent 還原會把圖示弄丟
           const ok = await window.vtCopyText(t);
           if (ok) {
-            b.textContent = "✅ 已複製";
+            b.textContent = "已複製";
           } else {
             // 複製不到就不假報成功：把評論放進臨時區域並全選
             window.vtSelectForManualCopy(t);
             b.textContent = "已選取 → 請按 Cmd+C";
           }
-          setTimeout(() => (b.textContent = o), ok ? 2000 : 6000);
+          setTimeout(() => (b.innerHTML = o), ok ? 2000 : 6000);
         });
         setTimeout(() => {
           if (typeof window.vtBuildDecisionExport === "function")
@@ -2322,9 +2587,11 @@
           )
             cp();
         });
+        c.forEach(ra);
         rn();
       })();
     </script>
+    <!-- vt-comment:end -->
 
     <!-- ═══════════════════════════════════════════════════════ -->
     <!-- Session 識別 — 多視窗並行時分辨這份是哪個 session 產的     -->
