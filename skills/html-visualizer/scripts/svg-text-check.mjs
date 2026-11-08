@@ -6,7 +6,7 @@
  * 為什麼另寫一支：layout-check.mjs 用 scrollWidth/clientWidth 判「文字被切掉」，
  * 對 SVG 元素那兩個數字沒意義（2026-09-05 實測誤報）。只有 getBBox 算數。
  *
- * 用法：node svg-text-check.mjs <file.html>   （exit 1 = 有超出；exit 2 = 找不到 playwright）
+ * 用法：node svg-text-check.mjs <file.html>   （exit 1 = 有超出；exit 2 = 找不到 playwright 或瀏覽器）
  */
 import { pathToFileURL } from "node:url";
 import path from "node:path";
@@ -34,7 +34,7 @@ async function launchBrowser() {
     try {
       return await pw.chromium.launch({ channel: "chrome" });
     } catch {
-      console.error("找不到可用的瀏覽器：playwright 自帶 chromium 與系統 Chrome 都起不來（無法驗證，不是通過）");
+      console.error("NO_BROWSER：playwright 自帶 chromium 與系統 Chrome 都起不來（無法驗證，不是通過）");
       process.exit(2);
     }
   }
