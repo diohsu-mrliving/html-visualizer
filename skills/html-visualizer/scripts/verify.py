@@ -192,6 +192,13 @@ def check_js_dom_refs(h):
     return sorted(want - ids)
 
 
+# 找不到 playwright 時印給人照抄的安裝指令；位置與搜尋順序見 find-playwright.mjs（兩邊要一致）
+PW_INSTALL_CMD = ("mkdir -p ~/.local/share/html-visualizer/playwright"
+                  " && npm --prefix ~/.local/share/html-visualizer/playwright i playwright"
+                  " && (cd ~/.local/share/html-visualizer/playwright && npx playwright install chromium)")
+NO_PW_MSG = ("找不到 playwright 套件。裝到預設位置（有 Google Chrome 可省略最後一段）：" + PW_INSTALL_CMD)
+
+
 def check_layout(path):
     """真的把頁面渲染出來、量它有沒有跑版。回傳 (狀態, 輸出行)。
 
@@ -209,7 +216,7 @@ def check_layout(path):
     except subprocess.TimeoutExpired:
         return "skip", ["渲染逾時"]
     if r.returncode == 2 or "NO_PLAYWRIGHT" in r.stderr or "NO_BROWSER" in r.stderr:
-        why = ("找不到 playwright 套件（可設 HTML_VISUALIZER_PLAYWRIGHT_ROOT 指定安裝位置）"
+        why = (NO_PW_MSG
                if "NO_PLAYWRIGHT" in r.stderr
                else "playwright 自帶 chromium 與系統 Chrome 都起不來")
         return "skip", [why]
@@ -233,7 +240,7 @@ def check_runtime(path):
     except subprocess.TimeoutExpired:
         return "skip", ["執行逾時"]
     if r.returncode == 2 or "NO_PLAYWRIGHT" in r.stderr or "NO_BROWSER" in r.stderr:
-        why = ("找不到 playwright 套件（可設 HTML_VISUALIZER_PLAYWRIGHT_ROOT 指定安裝位置）"
+        why = (NO_PW_MSG
                if "NO_PLAYWRIGHT" in r.stderr
                else "playwright 自帶 chromium 與系統 Chrome 都起不來")
         return "skip", [why]
@@ -255,7 +262,7 @@ def check_onepage(path):
     except subprocess.TimeoutExpired:
         return "skip", ["執行逾時"]
     if r.returncode == 2 or "NO_PLAYWRIGHT" in r.stderr or "NO_BROWSER" in r.stderr:
-        return "skip", ["找不到 playwright 或瀏覽器"]
+        return "skip", [NO_PW_MSG if "NO_PLAYWRIGHT" in r.stderr else "找不到 playwright 或瀏覽器"]
     lines = [ln for ln in r.stdout.splitlines() if ln.strip()]
     return ("bad" if r.returncode == 1 else "ok"), lines
 
@@ -274,7 +281,7 @@ def check_slides(path):
     except subprocess.TimeoutExpired:
         return "skip", ["執行逾時"]
     if r.returncode == 2 or "NO_PLAYWRIGHT" in r.stderr or "NO_BROWSER" in r.stderr:
-        return "skip", ["找不到 playwright 或瀏覽器"]
+        return "skip", [NO_PW_MSG if "NO_PLAYWRIGHT" in r.stderr else "找不到 playwright 或瀏覽器"]
     lines = [ln for ln in r.stdout.splitlines() if ln.strip()]
     return ("bad" if r.returncode == 1 else "ok"), lines
 
@@ -293,7 +300,7 @@ def check_scale(path):
     except subprocess.TimeoutExpired:
         return "skip", ["執行逾時"]
     if r.returncode == 2 or "NO_PLAYWRIGHT" in r.stderr or "NO_BROWSER" in r.stderr:
-        return "skip", ["找不到 playwright 或瀏覽器"]
+        return "skip", [NO_PW_MSG if "NO_PLAYWRIGHT" in r.stderr else "找不到 playwright 或瀏覽器"]
     lines = [ln for ln in r.stdout.splitlines() if ln.strip()]
     m = re.search(r"橫向溢出 (\d+)px", r.stdout)
     status = "bad" if r.returncode == 1 else ("warn" if m and int(m.group(1)) > 2 else "ok")
@@ -732,6 +739,9 @@ def main(path):
             report(UNVERIFIED, "跑版檢查", (lines[0] if lines else "") + " → 未驗證，不等於通過")
         elif status == "ok":
             report(OK, f"{len(WIDTHS)} 個寬度無跑版", " / ".join(str(w) for w in WIDTHS) + "px")
+            # 截圖路徑要印出來：SKILL.md 要求必看 1440px 截圖，不印就找不到
+            for ln in lines:
+                print("     " + ln.strip())
         else:
             report(BAD, "偵測到跑版", "詳如下")
             for ln in lines:

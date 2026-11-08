@@ -5,6 +5,44 @@
 
 ---
 
+## 0. 自動排版（優先）
+
+**流程圖、依賴圖、狀態機這類「節點＋連線」的圖，先寫一份描述檔交給程式排，不要手算座標。** 手算最常出的錯（線穿過節點、標籤壓線、viewBox 切到字、轉角斜線）都是座標算錯，不是設計錯。`scripts/layout-diagram.mjs` 用 dagre（MIT，已內附在 `scripts/vendor/`，不用 npm install）分層排版，再照本檔規則畫：正交圓角走線、同一邊多條線分散接點、層間橫線分軌道、標籤離線 6px 加遮罩、顏色只用頁面 token、中文自動平衡換行（判斷框也是）、外層 `.figure` 手機橫向捲動、節點／線帶 §6.7 探索層要的身分標記。
+
+**描述檔**（`.txt`，一行一件事；也收同結構的 `.json`，格式見腳本檔頭）：
+
+```text
+title: 每週整理排程流程
+desc: 兩句話講流向（螢幕閱讀器用）
+dir: TB                       # TB 上到下／LR 左到右
+id: weekly                    # marker 與 class 前綴，一頁多張圖時要不同
+node start  round   開始
+node q1     diamond 設定檔有「跳過每週回顧」？
+node review box     每週回顧
+node fail   dashed  記下哪步沒做完、下一步照做
+node memory box     記憶整理 | accent
+start -> q1
+q1 -> review : 沒有
+review -> memory : 回報後
+review -.-> fail : 被擋或失敗   # -.-> 虛線（例外、回頭路）；==> 強調主線
+group main 主線 : review memory   # 選填：虛線分區框
+```
+
+形狀：`box` 方框（動作）、`round` 膠囊（起迄）、`diamond` 菱形（判斷）、`dashed` 虛線框（例外／可選）；`| accent` 標強調（≤2 個）。文字太長自動換行，要指定斷點寫 `\n`。
+
+**指令**：
+
+```bash
+node <skill>/scripts/layout-diagram.mjs weekly.txt -o weekly-svg.html            # 印到檔案；不給 -o 印到 stdout
+node <skill>/scripts/layout-diagram.mjs weekly.txt -o weekly-svg.html --explore  # 外包 div.xp[data-explore]、svg 加 xplore
+```
+
+把輸出整段（含它自帶的 `<style>`）貼進頁面；要探索層照 §6.7 再貼 CSS/JS、寫 `template[data-detail]`（id 對描述檔的節點 id）。腳本會在 stderr 警告超預算、某行塞太多線、線穿過節點，看到就拆圖或改描述。貼完照常跑 `verify.py`（會自動跑 `svg-text-check.mjs`）並看截圖。
+
+**不適用、仍照 §6 手畫**：時序圖、泳道、時間軸、甘特、分層、象限這類「位置本身有意義」的圖（座標代表時間、角色或軸，不是排版結果）；要精確對齊特定版型的架構圖。自動排出來的圖哪裡不滿意，先改描述（換方向、拆節點、改連線順序），真的不行再拿輸出當起點手調。
+
+---
+
 ## 1. 先判斷：div 直線鏈、表格，還是 SVG 結構圖
 
 | 內容形狀                                           | 用什麼                                                        | 為什麼                            |
@@ -101,6 +139,8 @@
 ---
 
 ## 6. SVG 起手片段
+
+> 手算座標是後備：節點連線圖先走 §0 自動排版；這節給 §0 不適用的圖型，或要手調自動排版的輸出時對照用。
 
 ### 6.1 放進頁面的殼
 

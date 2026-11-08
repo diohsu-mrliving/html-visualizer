@@ -124,5 +124,5 @@ done
 if [ "$ACTION" = install ]; then
   echo
   echo "裝好了。重開 agent 或重新載入 skill 後即可使用。"
-  echo "選配（真瀏覽器版面檢查）：npm i -D playwright && npx playwright install chromium"
+  echo "選配（真瀏覽器版面檢查）：mkdir -p ~/.local/share/html-visualizer/playwright && npm --prefix ~/.local/share/html-visualizer/playwright i playwright && (cd ~/.local/share/html-visualizer/playwright && npx playwright install chromium)"
 fi

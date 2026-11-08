@@ -24,7 +24,7 @@ import path from "node:path";
 import os from "node:os";
 import fs from "node:fs";
 import { execFileSync, spawnSync } from "node:child_process";
-import { createRequire } from "node:module";
+import { loadPlaywright, PW_INSTALL_CMD } from "./find-playwright.mjs";
 
 // ── 參數 ──────────────────────────────────────────
 const argv = process.argv.slice(2);
@@ -89,31 +89,15 @@ function duration(f) {
   return parseFloat(out.trim());
 }
 
-function loadPlaywright() {
-  const roots = [process.env.HTML_VISUALIZER_PLAYWRIGHT_ROOT, process.cwd()].filter(Boolean);
-  for (const r of roots) {
-    try {
-      const req = createRequire(path.join(r, "noop.js"));
-      return req(req.resolve("playwright", { paths: [r] }));
-    } catch {
-      /* 換下一個 */
-    }
-  }
-  try {
-    return createRequire(import.meta.url)("playwright");
-  } catch {
-    return null;
-  }
-}
 const pw = loadPlaywright();
 if (!pw)
   die(
     [
       "找不到 playwright 套件。任選一種：",
-      "  ① 在某個資料夾裝：mkdir -p ~/.cache/hv-pw && npm --prefix ~/.cache/hv-pw i playwright",
-      "     然後 export HTML_VISUALIZER_PLAYWRIGHT_ROOT=~/.cache/hv-pw/node_modules",
-      "  ② 在已經裝了 playwright 的專案根目錄執行本指令",
-      "瀏覽器：有裝 Google Chrome 就會直接用；沒有就再跑 npx playwright install chromium",
+      "  ① 裝到預設位置（之後不用設環境變數）：",
+      "     " + PW_INSTALL_CMD,
+      "     （有裝 Google Chrome 可省略最後的 playwright install chromium）",
+      "  ② 在已經裝了 playwright 的專案根目錄執行本指令，或設 HTML_VISUALIZER_PLAYWRIGHT_ROOT 指到它的 node_modules",
     ].join("\n"),
     2,
   );

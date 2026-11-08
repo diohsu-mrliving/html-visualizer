@@ -190,7 +190,7 @@ cd html-visualizer
 網頁版和 Cowork 每次開的都是新環境，設定檔存不下來，所以只會影響當次。存成預設要在 Claude Code、Codex 這類裝在你電腦上的工具裡用。
 
 **檢查結果寫「未驗證」是壞了嗎？**
-不是。它會在給你看之前先檢查排版有沒有壞掉，這一步需要瀏覽器自動化工具 Playwright。沒裝就標「未驗證」，意思是「沒檢查」，不是「有問題」。電腦上有 Chrome 的話，`npm i -D playwright` 就夠了，它會直接借用你的 Chrome；沒有 Chrome 再加跑 `npx playwright install chromium`。
+不是。它會在給你看之前先檢查排版有沒有壞掉，這一步需要瀏覽器自動化工具 Playwright。沒裝就標「未驗證」，意思是「沒檢查」，不是「有問題」。建議裝到預設位置（自檢會自己找到）：`mkdir -p ~/.local/share/html-visualizer/playwright && npm --prefix ~/.local/share/html-visualizer/playwright i playwright`。電腦上有 Chrome 的話這樣就夠了，它會直接借用你的 Chrome；沒有 Chrome 再加跑 `(cd ~/.local/share/html-visualizer/playwright && npx playwright install chromium)`。找不到時，自檢的「未驗證」那行也會印出這條指令。
 
 ---
 
@@ -228,7 +228,7 @@ cd html-visualizer
 | 環境變數 | 作用 |
 |---|---|
 | `HTML_VISUALIZER_ARCHIVE_DIR` | 產出存放位置（預設 `~/Documents/claude-html`） |
-| `HTML_VISUALIZER_PLAYWRIGHT_ROOT` | 額外的 Playwright 搜尋路徑 |
+| `HTML_VISUALIZER_PLAYWRIGHT_ROOT` | 額外的 Playwright 搜尋路徑（沒設時找預設位置 `~/.local/share/html-visualizer/playwright`） |
 | `HTML_VISUALIZER_PROFILE` | 設定檔位置（預設 `~/.config/html-visualizer/profile.json`） |
 
 裝好後 `skills/html-visualizer/references/examples/` 有現成範例可以打開來看（範例檔沒有風格設定面板，面板是自檢時才加上的）。

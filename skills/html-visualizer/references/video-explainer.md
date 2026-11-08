@@ -58,10 +58,10 @@ HTML（data-scene + #video-scenes）
 需要：Node 18 以上、`ffmpeg`／`ffprobe`、Playwright、macOS `say`（或 ElevenLabs）。
 
 ```bash
-# 1. Playwright 沒裝過：裝在固定資料夾，不用全域安裝
-mkdir -p ~/.cache/hv-pw && npm --prefix ~/.cache/hv-pw i playwright
-export HTML_VISUALIZER_PLAYWRIGHT_ROOT=~/.cache/hv-pw/node_modules
-# 有 Google Chrome 就直接用；沒有再跑：npx --prefix ~/.cache/hv-pw playwright install chromium
+# 1. Playwright 沒裝過：裝在預設資料夾（腳本自己會找，不用設環境變數、不用全域安裝）
+mkdir -p ~/.local/share/html-visualizer/playwright && npm --prefix ~/.local/share/html-visualizer/playwright i playwright
+# 有 Google Chrome 就直接用；沒有再跑：(cd ~/.local/share/html-visualizer/playwright && npx playwright install chromium)
+# 舊位置 ~/.cache/hv-pw 仍找得到，但 ~/.cache 會被清理工具刪，建議搬到新位置
 
 # 2. 出片
 node <skill>/scripts/render-video.mjs page.html --out ~/Documents/claude-html/2026-10/topic.mp4
@@ -101,7 +101,7 @@ ffprobe -v error -show_entries stream=codec_type,codec_name,duration -of compact
 
 | 症狀 | 原因與解法 |
 |---|---|
-| `找不到 playwright 套件` | 照上面「執行」第 1 步裝，設 `HTML_VISUALIZER_PLAYWRIGHT_ROOT`；或在已裝 playwright 的專案根目錄執行 |
+| `找不到 playwright 套件` | 照上面「執行」第 1 步裝到預設位置；或在已裝 playwright 的專案根目錄執行；裝在別處就設 `HTML_VISUALIZER_PLAYWRIGHT_ROOT` 指到它的 `node_modules` |
 | `chromium 與系統 Chrome 都起不來` | 安裝 Google Chrome，或 `npx playwright install chromium` |
 | `頁面沒有 window.__goToScene(n)` | 一頁版複製 `assets/onepage-template.html` 的「場景引擎」script 與場景 CSS；簡報從 `assets/slides-template.html` 起手（引擎內建） |
 | 簡報的圖表那幕是空的 | 圖表從 CDN 載入（@unovis）。腳本會等 `window.__chartsReady` 最多 15 秒；離線就畫不出來 |

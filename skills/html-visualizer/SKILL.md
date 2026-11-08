@@ -22,7 +22,7 @@ description: 把長文件、報告、規格、決策、架構、教學、儀表�
 | 階 | 產出 | 何時 | 怎麼做 |
 |---|---|---|---|
 | 1 文字 | chat 裡的短答 | 短 Q&A、一兩句講得完 | 不用此 skill |
-| 2 一張圖 | 單張 SVG 結構圖／圖表 | 「畫一下」「一張圖說明」 | `references/structure-diagrams.md`、`chart` skill |
+| 2 一張圖 | 單張 SVG 結構圖／圖表 | 「畫一下」「一張圖說明」 | `references/structure-diagrams.md`（節點連線圖先用 `scripts/layout-diagram.mjs` 自動排版，§0）、`chart` skill |
 | 3 一頁 HTML | **一頁版**：1920×1080 不捲動，標題 → 一張主圖 → ≤ 3 條重點 | 「一頁講完」「給老闆一眼看懂」「投影用」、要出影片的前一步 | `assets/onepage-template.html`，規則見 `references/onepage.md`（長內容仍走下方 Step 0 的一般範本） |
 | 3′ 簡報 | **簡報**：多張 1920×1080 投影片，一張一個重點；← → 換頁、N 講者備註、O 總覽、列印一張一頁。10 種版型（封面／章節／重點條列／大數字／左右比較／流程圖／時間軸／表格／圖表／結論與下一步） | 「做成簡報」「要上台報告」「做 slide」「投影片」、有人會站在前面一張一張講 | `assets/slides-template.html`，規則與每種版型上限見 `references/slides.md`；視覺來源 `references/examples/slide-report/` |
 | 4 解說影片 | mp4：畫面逐幕長出來＋旁白＋字幕（3Blue1Brown 風） | 「做成影片」「錄一段解說」「要傳給沒空看文件的人」 | 一頁版加 `data-scene` 與 `#video-scenes` 旁白；簡報一張＝一幕、旁白寫 `data-narration` → `node scripts/render-video.mjs page.html`，見 `references/video-explainer.md` |
@@ -130,7 +130,7 @@ description: 把長文件、報告、規格、決策、架構、教學、儀表�
      | UI 結構與狀態歸屬 | component tree（code-shape）|
      | 檔案分工 / 大型重構 | 淺層檔案責任樹（code-shape）|
      | 跨部件互動時序 | SVG 時序圖（`references/structure-diagrams.md` §7.3；有分支用組合片段）|
-     | ⭐ 分支 / 角色交接 / 回頭路 / 分區跨線 / 多父或有環的依賴 | **SVG 結構圖**（`references/structure-diagrams.md`：流程圖 / 泳道 / 狀態機 / 架構 / 依賴圖…）；單向直線鏈才用 div 流程圖。**該圖 ≥6 格 → 掛探索層**（§6.7：點格聚焦 / 追上下游 / 兩點路徑 / 章節視角；`assets/diagram-explore.{css,js}` 內嵌）；**有格子需要比圖上多兩行的說明 → 寫 `template[data-detail]`，點一格就在浮動窗讀到**（小圖也適用，§6.7）|
+     | ⭐ 分支 / 角色交接 / 回頭路 / 分區跨線 / 多父或有環的依賴 | **SVG 結構圖**（`references/structure-diagrams.md`：流程圖 / 泳道 / 狀態機 / 架構 / 依賴圖…）；單向直線鏈才用 div 流程圖。**流程圖／依賴圖／狀態機這類節點連線圖，先寫描述檔交給 `scripts/layout-diagram.mjs` 算座標（§0 自動排版），手算座標是後備。** **該圖 ≥6 格 → 掛探索層**（§6.7：點格聚焦 / 追上下游 / 兩點路徑 / 章節視角；`assets/diagram-explore.{css,js}` 內嵌）；**有格子需要比圖上多兩行的說明 → 寫 `template[data-detail]`，點一格就在浮動窗讀到**（小圖也適用，§6.7）|
      | 改了什麼（結構 / 流程 / 檔案佈局）| 結構 diff |
      | 改了什麼（畫面外觀）| Before-After UI mock |
      | 資料的形狀 | 交棒 `chart` |
@@ -196,7 +196,7 @@ description: 把長文件、報告、規格、決策、架構、教學、儀表�
     ⚠️ **版面健檢證不了樣式有生效**——它量的是溢出座標，樣式全失效時每個元素都還在自己位置上、量不出異常。兩項要一起看。
     ⚠️ **不要用行號切 CSS 片段**：要複用範本樣式就整段複製到規則邊界，或整份 head 一起帶。
 
-    ⭐ **版面健檢**（同一支指令內建，用 playwright 無頭 chromium 在 390 / 768 / 1440px（設定檔 `checkWidths` 可改）真的把頁面畫出來）：量整頁橫向溢出、凸出視窗的元素、被容器切掉的文字，**以及樣式撞車的四種可讀性崩潰**（文字被壓成直排／元素被壓扁到沒有高度／文字與背景對比不足看不見／被不透明元素蓋住），並指名是哪個元素。**跑版不在標記裡**——同一份 HTML 可以在桌機好好的、在手機整片凸出去，靜態掃 class 名稱永遠猜不到，只有量出來的座標算數（首次上線就在自家決策頁抓到 6 處手機跑版）。趕時間可加 `--no-layout` 跳過；找不到瀏覽器時同樣標「未驗證」而非通過。 pnpm 專案的 playwright 不會被提升到 `node_modules/playwright`，指令從專案根跑仍會說找不到；設 `HTML_VISUALIZER_PLAYWRIGHT_ROOT=<repo>/node_modules/.pnpm/playwright@<版本>/node_modules` 即可。
+    ⭐ **版面健檢**（同一支指令內建，用 playwright 無頭 chromium 在 390 / 768 / 1440px（設定檔 `checkWidths` 可改）真的把頁面畫出來）：量整頁橫向溢出、凸出視窗的元素、被容器切掉的文字，**以及樣式撞車的四種可讀性崩潰**（文字被壓成直排／元素被壓扁到沒有高度／文字與背景對比不足看不見／被不透明元素蓋住），並指名是哪個元素。**跑版不在標記裡**——同一份 HTML 可以在桌機好好的、在手機整片凸出去，靜態掃 class 名稱永遠猜不到，只有量出來的座標算數（首次上線就在自家決策頁抓到 6 處手機跑版）。趕時間可加 `--no-layout` 跳過；找不到瀏覽器時同樣標「未驗證」而非通過。playwright 依序找：環境變數 `HTML_VISUALIZER_PLAYWRIGHT_ROOT` → 預設安裝位置 `~/.local/share/html-visualizer/playwright` → 舊位置 `~/.cache/hv-pw` → 目前目錄；都沒有時「未驗證」那行會印出可直接照抄的安裝指令。版面健檢通過時也會印出每個寬度的截圖路徑。 pnpm 專案的 playwright 不會被提升到 `node_modules/playwright`，指令從專案根跑仍會說找不到；設 `HTML_VISUALIZER_PLAYWRIGHT_ROOT=<repo>/node_modules/.pnpm/playwright@<版本>/node_modules` 即可。
 
     - **有 `✗` 就修完再 open**，不要先開給人看。唯一例外：含 SVG 結構圖的頁面，版面健檢對 `<svg>` 報「凸出視窗」時，先確認它外層是不是 `.figure`（受控橫向捲動）——是就屬預期。**「文字被切掉」對 SVG 已不再誤報**（腳本已排除 SVG 子元素），所以那條紅字要當真。SVG 文字真正的檢查是 `scripts/svg-text-check.mjs`（`references/structure-diagrams.md` §9），`verify.py` 偵測到 `<svg>` 會自動幫你跑
     - ⚠️ 別再自己現寫 grep：手打正則出錯會產生假警報（實測踩過——寫錯的檢查回報「每段都是純文字牆」，其實產出沒問題）

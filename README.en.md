@@ -192,7 +192,7 @@ Short answers deliberately don't trigger it — you don't want a web page for a 
 The claude.ai web app and Cowork start a fresh environment each time, so the profile can't be kept there — it only affects that session. Saving defaults needs a tool that runs on your own machine, such as Claude Code or Codex.
 
 **A check says "unverified" — is something broken?**
-No. Before showing you a page it checks the layout isn't broken, and that step needs the browser automation tool Playwright. Without it the check says "unverified", meaning "not checked" — not "something's wrong". If you have Chrome installed, `npm i -D playwright` is enough — it borrows your Chrome. Without Chrome, also run `npx playwright install chromium`.
+No. Before showing you a page it checks the layout isn't broken, and that step needs the browser automation tool Playwright. Without it the check says "unverified", meaning "not checked" — not "something's wrong". Install it to the default location (the self-check finds it automatically): `mkdir -p ~/.local/share/html-visualizer/playwright && npm --prefix ~/.local/share/html-visualizer/playwright i playwright`. If you have Chrome installed that's enough — it borrows your Chrome. Without Chrome, also run `(cd ~/.local/share/html-visualizer/playwright && npx playwright install chromium)`. When it's missing, the "unverified" line prints this command too.
 
 ---
 
@@ -230,7 +230,7 @@ Four skills working together:
 | Environment variable | Effect |
 |---|---|
 | `HTML_VISUALIZER_ARCHIVE_DIR` | Where pages are saved (default `~/Documents/claude-html`) |
-| `HTML_VISUALIZER_PLAYWRIGHT_ROOT` | Extra path to look for Playwright |
+| `HTML_VISUALIZER_PLAYWRIGHT_ROOT` | Extra path to look for Playwright (if unset, the default install location `~/.local/share/html-visualizer/playwright` is used) |
 | `HTML_VISUALIZER_PROFILE` | Where your profile lives (default `~/.config/html-visualizer/profile.json`) |
 
 After installing, `skills/html-visualizer/references/examples/` has working examples you can open (they don't include the style-settings panel; it's added during the self-check).

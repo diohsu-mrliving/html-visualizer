@@ -10,7 +10,7 @@
  */
 import { pathToFileURL } from "node:url";
 import path from "node:path";
-import { createRequire } from "node:module";
+import { loadPlaywright, PW_INSTALL_CMD } from "./find-playwright.mjs";
 
 const file = process.argv[2];
 if (!file) {
@@ -18,28 +18,10 @@ if (!file) {
   process.exit(64);
 }
 
-function loadPlaywright() {
-  const roots = [
-    process.env.HTML_VISUALIZER_PLAYWRIGHT_ROOT,
-    process.cwd(),
-  ].filter(Boolean);
-  for (const r of roots) {
-    try {
-      const req = createRequire(path.join(r, "noop.js"));
-      return req(req.resolve("playwright", { paths: [r] }));
-    } catch {
-      /* next */
-    }
-  }
-  try {
-    return createRequire(import.meta.url)("playwright");
-  } catch {
-    return null;
-  }
-}
 const pw = loadPlaywright();
 if (!pw) {
   console.error("找不到 playwright（無法驗證，不是通過）");
+  console.error("安裝：" + PW_INSTALL_CMD);
   process.exit(2);
 }
 

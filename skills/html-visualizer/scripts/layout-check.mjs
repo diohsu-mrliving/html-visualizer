@@ -12,7 +12,7 @@ import { pathToFileURL } from "node:url";
 import path from "node:path";
 import os from "node:os";
 import fs from "node:fs";
-import { createRequire } from "node:module";
+import { loadPlaywright } from "./find-playwright.mjs";
 
 // 寬度由 verify.py 依使用者設定檔的 checkWidths 帶進來；沒帶就用手機／平板／桌機三段
 const WIDTHS = (process.env.HTML_VISUALIZER_WIDTHS || "390,768,1440")
@@ -28,26 +28,6 @@ if (!file) {
   process.exit(64);
 }
 
-// playwright 可能裝在別的專案底下（本 skill 是全域的）——依序試幾個根目錄
-function loadPlaywright() {
-  const roots = [
-    process.env.HTML_VISUALIZER_PLAYWRIGHT_ROOT,
-    process.cwd(),
-  ].filter(Boolean);
-  for (const r of roots) {
-    try {
-      const req = createRequire(path.join(r, "noop.js"));
-      return req(req.resolve("playwright", { paths: [r] }));
-    } catch {
-      /* 換下一個 */
-    }
-  }
-  try {
-    return createRequire(import.meta.url)("playwright");
-  } catch {
-    return null;
-  }
-}
 
 const pw = loadPlaywright();
 if (!pw) {

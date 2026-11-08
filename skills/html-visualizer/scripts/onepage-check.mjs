@@ -18,7 +18,7 @@ import { pathToFileURL } from "node:url";
 import path from "node:path";
 import os from "node:os";
 import fs from "node:fs";
-import { createRequire } from "node:module";
+import { loadPlaywright } from "./find-playwright.mjs";
 
 const file = process.argv[2];
 if (!file) {
@@ -33,22 +33,6 @@ const W = arg("--width", 1920);
 const H = arg("--height", 1080);
 const TOL = 1.5;
 
-function loadPlaywright() {
-  const roots = [process.env.HTML_VISUALIZER_PLAYWRIGHT_ROOT, process.cwd()].filter(Boolean);
-  for (const r of roots) {
-    try {
-      const req = createRequire(path.join(r, "noop.js"));
-      return req(req.resolve("playwright", { paths: [r] }));
-    } catch {
-      /* 換下一個 */
-    }
-  }
-  try {
-    return createRequire(import.meta.url)("playwright");
-  } catch {
-    return null;
-  }
-}
 const pw = loadPlaywright();
 if (!pw) {
   console.error("NO_PLAYWRIGHT");
