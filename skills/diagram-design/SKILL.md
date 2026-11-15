@@ -7,7 +7,8 @@ license: MIT
 <!-- 上游：github.com/cathrynlavery/diagram-design v2.6（MIT）。本複本與上游的差異：
      (1) 本 frontmatter 改寫；(2) 新增下方「本機適配」段；(3) references/style-guide.md 檔頭加一行註記；
      (4) 移除 5 個授權待確認的品牌圖示（SAS／Stata／hop／pentaho／dagster）及其在 assets/icons.html 的對應格；
-     (5) 上游 repo 才有的驗證腳本與四個 -extended 範例檔本來就不在安裝版，未隨包。
+     (5) 上游 repo 才有的驗證腳本與四個 -extended 範例檔本來就不在安裝版，未隨包；
+     (6) 「本機適配」要求跳過的各段標題下加一行「本機不用」註記（只加註、未刪改上游內文）。
      其餘檔案與上游相同。 -->
 
 ## 本機適配（優先於下方上游各章）
@@ -32,6 +33,8 @@ Thirty-nine visual types. Semantic patterns describe behavior independently; typ
 ---
 
 ## 0. First-time setup — style guide gate
+
+（本機不用，見開頭本機適配）
 
 **Before generating your first diagram in a new project, verify the style guide has been customized.**
 
@@ -149,6 +152,8 @@ Rules of thumb:
 
 ### Confirm before drawing
 
+（本機不用，見開頭本機適配）
+
 Before rendering, state the plan in one short message: the chosen visual type (and semantic pattern, if routed), the size preset, and anything the complexity budget (§7) will force out. If the user is reachable, let them redirect before you draw; if not, proceed and note the assumptions beside the deliverable. Skip the pause only when the request already pins type, size, and content exactly.
 
 ---
@@ -177,6 +182,8 @@ Type-specific anti-patterns live in each type reference linked in the guide.
 ---
 
 ## 5. Design System
+
+（本機不用本節與 style-guide.md 的上游色碼，顏色一律換 html-visualizer token；語意角色照用。見開頭本機適配第 4 點）
 
 **The design system is skinnable.** All colors, typography, and tokens live in a single source of truth — [`references/style-guide.md`](references/style-guide.md). This file describes semantic roles (`paper`, `ink`, `muted`, `accent`, `link`, …). The default skin is a cool editorial palette (white-smoke paper, jet-black ink, atomic-tangerine accent, blue-slate muted, silver hairlines); to apply your own brand, either edit `style-guide.md` directly or run the URL-based flow described in [`references/onboarding.md`](references/onboarding.md).
 
@@ -208,6 +215,8 @@ Type-specific anti-patterns live in each type reference linked in the guide.
 | **Security / Boundary** | `accent @ 0.05` | `accent @ 0.50` dashed `4,4` |
 
 ### Typography (summary — full spec in style-guide.md)
+
+（本機不用 Geist／Instrument Serif 與下方 Google Fonts `<link>`，字型靠外層頁面繼承。見開頭本機適配第 3 點）
 
 - **Title** — Instrument Serif, 1.75rem, 400 — H1 only
 - **Node name** — Geist (sans), 12px, 600 — human-readable labels
@@ -428,6 +437,8 @@ If you exceed, split into two diagrams (overview + detail).
 
 ### Page layout
 
+（本機不用，見開頭本機適配）
+
 1. **Header** — eyebrow (Geist Mono), title (Instrument Serif), optional subtitle (Geist muted).
 2. **Diagram container** — default: **clean, borderless**, no background — the SVG sits directly on the page paper. Optional *framed* variant (for card-heavy layouts or hero placements): `paper-2` bg + 1px `rule` border + 8px radius + `1.5rem` padding + `overflow-x: auto`.
 3. **Summary cards** — 2–3 col grid with *varied* widths (e.g., `1.1fr 1fr 0.9fr`).
@@ -461,6 +472,8 @@ Rules:
 ---
 
 ## 9. Pre-Output Checklist (Taste Gate)
+
+（本機不用其中三個 `python3` 檢查勾，其餘檢查照做。見開頭本機適配第 2 點）
 
 Run before producing any diagram.
 
@@ -547,6 +560,8 @@ Every diagram ships in three variants (see `assets/`):
 
 ## 11. Importing an Existing Diagram (draw.io) and Mermaid
 
+（本機不用，見開頭本機適配）
+
 Route by source: `.drawio*` → [`references/import-drawio.md`](references/import-drawio.md); `.mmd`, `.mermaid`, or Markdown containing a fenced `mermaid` block → [`references/import-mermaid.md`](references/import-mermaid.md). Follow the selected reference for "convert this", "redraw this diagram", "make this presentable", and the corresponding import command.
 
 The short version:
@@ -577,7 +592,7 @@ Two consequences: the size preset sets the `viewBox` **and** the type ramp (a sl
 
 Always produce a single self-contained `.html` file:
 
-- Embedded CSS (no external except Google Fonts)
+- Embedded CSS (no external except Google Fonts)（本機連 Google Fonts 也不用，見開頭本機適配）
 - Inline SVG (no external images)
 - Static by default; minimal inline JavaScript only for explicit animation controls/state
 
@@ -595,6 +610,8 @@ Every diagram is an accessible figure by default:
 6. Decorative-only SVG, such as the specimen glyphs in `assets/icons.html`, carries `aria-hidden="true"` instead. Giving decorative marks accessible names adds noise.
 
 ### Exporting to PNG / SVG
+
+（本機不用，見開頭本機適配）
 
 When the user asks to export, save, rasterize, or convert a generated diagram to `.png` or `.svg`, load [`references/export.md`](references/export.md) and follow the procedure there. Both formats deliver the diagram only (the `<svg>` node) — editorial wrappers like cards and headers are dropped by design. Export is **manual** — never produce export files unprompted.
 
