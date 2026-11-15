@@ -1,5 +1,7 @@
 # Onboarding — generate your skin from a design source
 
+（本機不用，見 SKILL.md 開頭本機適配）
+
 **Goal:** point the skill at a design source — a website, an installed skill, or a local folder — and have it extract the palette + typography, then rewrite `style-guide.md` so every future diagram inherits that skin.
 
 Takes about 60 seconds.

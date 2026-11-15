@@ -1,5 +1,7 @@
 # Client profiles
 
+（本機不用，見 SKILL.md 開頭本機適配）
+
 Named profiles let one Diagram Design install serve several clients without repeatedly editing the installed `style-guide.md`. A profile is a complete style guide stored outside the install, so managed plugin updates cannot erase it.
 
 This file is the source of truth for profile resolution and for the `save`, `load`/`switch`, `list`, `show`, `update`, `reset`, and `delete` verbs.
